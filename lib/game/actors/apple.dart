@@ -1,26 +1,24 @@
-import 'dart:ui';
-
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:squish_them_all/game/game.dart';
 
-class Apple extends SpriteComponent {
-  Apple(
-    Image image, {
-    Vector2? position,
-    Vector2? size,
-    Vector2? scale,
-    double? angle,
-    Anchor? anchor,
-    int? priority,
-  }) : super.fromImage(
-          image,
-          // this defines the top left corner of the sprit image we want to draw from the input image.
-          srcPosition: Vector2.zero(),
-          srcSize: Vector2.all(32),
-          position: position,
-          size: size,
-          scale: scale,
-          angle: angle,
-          anchor: anchor,
-          priority: priority,
-        );
+enum AppleStates {
+  idle,
+}
+
+class Apple extends SpriteAnimationGroupComponent
+    with CollisionCallbacks, HasGameRef<SquishThemAll> {
+  Apple({
+    super.animations,
+    super.current,
+    super.removeOnFinish,
+    super.paint,
+    super.position,
+    super.size,
+    super.scale,
+    super.angle,
+    super.anchor,
+    super.children,
+    super.priority,
+  });
 }

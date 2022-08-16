@@ -19,6 +19,7 @@ class SquishThemAll extends FlameGame {
     spriteSheet = await images.loadAll(
       [
         'Pink Man - Idle (32x32).png',
+        'Pink Man - Run (32x32).png',
         'Fruits - Apple.png',
         'Angry Pig - Idle (36x30).png',
         'Checkpoints - End (Idle).png',

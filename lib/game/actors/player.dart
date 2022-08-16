@@ -2,17 +2,19 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:squish_them_all/game/game.dart';
 
-enum AngryPigStates {
+enum PlayerStates {
   idle,
-  walk,
-  hit1,
   run,
-  hit2,
+  jump,
+  doubleJump,
+  wallJump,
+  fall,
+  hit,
 }
 
-class AngryPig extends SpriteAnimationGroupComponent
+class Player extends SpriteAnimationGroupComponent
     with CollisionCallbacks, HasGameRef<SquishThemAll> {
-  AngryPig({
+  Player({
     super.animations,
     super.current,
     super.removeOnFinish,
