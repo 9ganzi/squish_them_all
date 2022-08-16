@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="24" height="13" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="14">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="24" height="13" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="64">
  <tileset firstgid="1" source="2 - _Complete_static_BG_(288 x 208).tsx"/>
  <tileset firstgid="235" source="2 - Terrain (16 x 16).tsx"/>
  <tileset firstgid="405" source="Angry Pig - Idle (36x30).tsx"/>
  <tileset firstgid="414" source="Checkpoints - End (Idle).tsx"/>
  <tileset firstgid="415" source="Pink Man - Idle (32x32).tsx"/>
  <tileset firstgid="426" source="Fruits - Apple.tsx"/>
+ <tileset firstgid="443" source="Fruits - Bananas.tsx"/>
+ <tileset firstgid="460" source="Fruits - Melon.tsx"/>
  <layer id="1" name="Tile Layer 1" width="24" height="13">
   <data encoding="base64">
    AQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAABEAAAASAAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAAEwAAABQAAAAVAAAAFgAAABcAAAAYAAAAGQAAABoAAAAbAAAAHAAAAB0AAAAeAAAAHwAAACAAAAAhAAAAIgAAACMAAAAkAAAAEwAAABQAAAAVAAAAFgAAABcAAAAYAAAAJQAAACYAAAAnAAAAKAAAACkAAAAqAAAAKwAAACwAAAAtAAAALgAAAC8AAAAwAAAAMQAAADIAAAAzAAAANAAAADUAAAA2AAAAJQAAACYAAAAnAAAAKAAAACkAAAAqAAAANwAAADgAAAA5AAAAOgAAADsAAAA8AAAAPQAAAD4AAAA/AAAAQAAAAEEAAABCAAAAQwAAAEQAAABFAAAARgAAAEcAAABIAAAANwAAADgAAAA5AAAAOgAAADsAAAA8AAAASQAAAEoAAABLAAAATAAAAE0AAABOAAAATwAAAFAAAABRAAAAUgAAAFMAAABUAAAAVQAAAFYAAABXAAAAWAAAAFkAAABaAAAASQAAAEoAAABLAAAATAAAAE0AAABOAAAAWwAAAFwAAABdAAAAXgAAAF8AAABgAAAAYQAAAGIAAABjAAAAZAAAAGUAAABmAAAAZwAAAGgAAABpAAAAagAAAGsAAABsAAAAWwAAAFwAAABdAAAAXgAAAF8AAABgAAAAbQAAAG4AAABvAAAAcAAAAHEAAAByAAAAcwAAAHQAAAB1AAAAdgAAAHcAAAB4AAAAeQAAAHoAAAB7AAAAfAAAAH0AAAB+AAAAbQAAAG4AAABvAAAAcAAAAHEAAAByAAAAfwAAAIAAAACBAAAAggAAAIMAAACEAAAAhQAAAIYAAACHAAAAiAAAAIkAAACKAAAAiwAAAIwAAACNAAAAjgAAAI8AAACQAAAAfwAAAIAAAACBAAAAggAAAIMAAACEAAAAkQAAAJIAAACTAAAAlAAAAJUAAACWAAAAlwAAAJgAAACZAAAAmgAAAJsAAACcAAAAnQAAAJ4AAACfAAAAoAAAAKEAAACiAAAAkQAAAJIAAACTAAAAlAAAAJUAAACWAAAAowAAAKQAAAClAAAApgAAAKcAAACoAAAAqQAAAKoAAACrAAAArAAAAK0AAACuAAAArwAAALAAAACxAAAAsgAAALMAAAC0AAAAowAAAKQAAAClAAAApgAAAKcAAACoAAAAtQAAALYAAAC3AAAAuAAAALkAAAC6AAAAuwAAALwAAAC9AAAAvgAAAL8AAADAAAAAwQAAAMIAAADDAAAAxAAAAMUAAADGAAAAtQAAALYAAAC3AAAAuAAAALkAAAC6AAAAxwAAAMgAAADJAAAAygAAAMsAAADMAAAAzQAAAM4AAADPAAAA0AAAANEAAADSAAAA0wAAANQAAADVAAAA1gAAANcAAADYAAAAxwAAAMgAAADJAAAAygAAAMsAAADMAAAA2QAAANoAAADbAAAA3AAAAN0AAADeAAAA3wAAAOAAAADhAAAA4gAAAOMAAADkAAAA5QAAAOYAAADnAAAA6AAAAOkAAADqAAAA2QAAANoAAADbAAAA3AAAAN0AAADeAAAA
@@ -18,16 +20,16 @@
  </layer>
  <objectgroup id="3" name="SpawnPoints">
   <object id="1" type="Player" x="16" y="160" width="32" height="32"/>
-  <object id="3" type="Apple" x="128" y="128" width="32" height="32"/>
+  <object id="3" type="Bananas" x="128" y="128" width="32" height="32"/>
   <object id="4" type="Apple" x="160" y="128" width="32" height="32"/>
-  <object id="5" type="Apple" x="192" y="128" width="32" height="32"/>
+  <object id="5" type="Melon" x="192" y="128" width="32" height="32"/>
   <object id="6" type="Angry Pig" x="224" y="160" width="36" height="30"/>
   <object id="7" type="End" x="272" y="128" width="64" height="64"/>
   <object id="8" gid="405" x="224" y="192" width="36" height="30"/>
   <object id="9" gid="414" x="272" y="192" width="64" height="64"/>
   <object id="10" gid="415" x="16" y="192" width="32" height="32"/>
-  <object id="11" gid="426" x="128" y="160" width="32" height="32"/>
-  <object id="12" gid="426" x="160" y="160" width="32" height="32"/>
-  <object id="13" gid="426" x="192" y="160" width="32" height="32"/>
+  <object id="11" gid="426" x="160" y="160" width="32" height="32"/>
+  <object id="62" gid="444" x="128" y="160" width="32" height="32"/>
+  <object id="63" gid="460" x="192" y="160" width="32" height="32"/>
  </objectgroup>
 </map>

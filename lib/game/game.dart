@@ -18,11 +18,23 @@ class SquishThemAll extends FlameGame {
     // This will make sure to load and keep a reference to the spritesheet before starting the game.
     spriteSheet = await images.loadAll(
       [
+        'Angry Pig - Idle (36x30).png',
+        'Angry Pig - Walk (36x30).png',
+        'Angry Pig - Hit 1 (36x30).png',
+        'Angry Pig - Run (36x30).png',
+        'Angry Pig - Hit 2 (36x30).png',
+        'Checkpoints - End (Idle).png',
+        'Checkpoints - End (Pressed) (64x64).png',
+        'Fruits - Apple.png',
+        'Fruits - Bananas.png',
+        'Fruits - Melon.png',
         'Pink Man - Idle (32x32).png',
         'Pink Man - Run (32x32).png',
-        'Fruits - Apple.png',
-        'Angry Pig - Idle (36x30).png',
-        'Checkpoints - End (Idle).png',
+        'Pink Man - Jump (32x32).png',
+        'Pink Man - Double Jump (32x32).png',
+        'Pink Man - Wall Jump (32x32).png',
+        'Pink Man - Fall (32x32).png',
+        'Pink Man - Hit (32x32).png',
       ],
     );
 
