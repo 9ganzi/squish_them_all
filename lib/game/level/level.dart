@@ -127,10 +127,19 @@ class Level extends Component with HasGameRef<SquishThemAll> {
         switch (spawnPoint.type) {
           case 'Player':
             final _player = Player(
-              position: Vector2(spawnPoint.x, spawnPoint.y),
-              animations: playerAnimations,
-              size: Vector2.all(32),
-              current: PlayerStates.idle,
+              Vector2(spawnPoint.x, spawnPoint.y),
+              SpriteAnimationComponent(
+                animation: SpriteAnimation.fromFrameData(
+                  await gameRef.images.load('Pink Man - Idle (32x32).png'),
+                  SpriteAnimationData.sequenced(
+                    amount: 11,
+                    textureSize: Vector2.all(32),
+                    stepTime: .05,
+                  ),
+                ),
+                size: Vector2.all(32),
+                anchor: Anchor.center,
+              ),
             );
             add(_player);
             break;

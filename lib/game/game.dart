@@ -11,11 +11,7 @@ class SquishThemAll extends Forge2DGame {
   Level? _currentLevel;
   late List<Image> spriteSheet;
 
-  SquishThemAll()
-      : super(
-          zoom: 1,
-          gravity: Vector2(0, 15),
-        );
+  SquishThemAll() : super(zoom: 10, gravity: Vector2(0, 10.0));
 
   @override
   Future<void>? onLoad() async {
@@ -46,9 +42,7 @@ class SquishThemAll extends Forge2DGame {
     );
 
     // Basically this viewport makes sure the ratio between width and height is always the same in your game, no matter the platform.
-    camera.viewport = FixedResolutionViewport(
-      Vector2(288, 208),
-    );
+    camera.viewport = FixedResolutionViewport(Vector2(288, 208) * camera.zoom);
 
     loadLevel('Level1.tmx');
 
