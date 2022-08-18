@@ -2,13 +2,20 @@ import 'dart:ui';
 
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
 
 import 'level/level.dart';
 
-class SquishThemAll extends FlameGame {
+class SquishThemAll extends Forge2DGame {
   // ? makes the type nullable.
   Level? _currentLevel;
   late List<Image> spriteSheet;
+
+  SquishThemAll()
+      : super(
+          zoom: 1,
+          gravity: Vector2(0, 15),
+        );
 
   @override
   Future<void>? onLoad() async {
