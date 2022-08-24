@@ -1,5 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'game/game.dart';
 
@@ -7,7 +8,6 @@ void main() {
   runApp(const MyApp());
 }
 
-// Todo: Use this!
 final _game = SquishThemAll();
 
 class MyApp extends StatelessWidget {
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       ),
       home: Scaffold(
         body: GameWidget(
-          game: SquishThemAll(),
+          game: kDebugMode ? SquishThemAll() : _game,
         ),
       ),
     );

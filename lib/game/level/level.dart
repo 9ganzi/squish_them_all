@@ -1,18 +1,19 @@
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame/sprite.dart';
+
 import 'package:flame_tiled/flame_tiled.dart';
+import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:tiled/tiled.dart';
+
 import 'package:squish_them_all/game/actors/angry_pig.dart';
 import 'package:squish_them_all/game/actors/apple.dart';
 import 'package:squish_them_all/game/actors/end.dart';
 import 'package:squish_them_all/game/game.dart';
-import 'package:tiled/tiled.dart';
-
-import '../actors/player.dart';
-import '../actors/apple.dart';
-import '../actors/angry_pig.dart';
-import '../actors/end.dart';
-import '../actors/bananas.dart';
-import '../actors/melon.dart';
+import 'package:squish_them_all/game/actors/player.dart';
+import 'package:squish_them_all/game/actors/bananas.dart';
+import 'package:squish_them_all/game/actors/melon.dart';
+import 'package:squish_them_all/game/actors/ground.dart';
 
 // The mixin ensures that level can access the parent game class instance using gameRef.
 class Level extends Component with HasGameRef<SquishThemAll> {
@@ -30,37 +31,6 @@ class Level extends Component with HasGameRef<SquishThemAll> {
       Vector2.all(16),
     );
     add(level);
-
-    final playerAnimations = {
-      PlayerStates.idle: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Idle (32x32).png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      PlayerStates.run: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Run (32x32).png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      PlayerStates.jump: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Jump (32x32).png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      PlayerStates.doubleJump: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Double Jump (32x32).png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      PlayerStates.wallJump: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Wall Jump (32x32).png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      PlayerStates.fall: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Fall (32x32).png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      PlayerStates.hit: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Hit (32x32).png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-    };
 
     final appleAnimations = {
       AppleStates.idle: SpriteSheet(
@@ -118,80 +88,106 @@ class Level extends Component with HasGameRef<SquishThemAll> {
       ).createAnimation(row: 0, stepTime: 0.05),
     };
 
+    await spawnActors(level.tileMap, appleAnimations, angryPigAnimations,
+        endAnimations, melonAnimations, bananasAnimations);
+
+    return super.onLoad();
+  }
+
+  Future<void> spawnActors(
+      RenderableTiledMap tileMap,
+      Map<AppleStates, SpriteAnimation> appleAnimations,
+      Map<AngryPigStates, SpriteAnimation> angryPigAnimations,
+      Map<EndStates, SpriteAnimation> endAnimations,
+      Map<MelonStates, SpriteAnimation> melonAnimations,
+      Map<BananasStates, SpriteAnimation> bananasAnimations) async {
+    final groundLayer = tileMap.getLayer<ObjectGroup>('Ground');
+
+    final List<Rect> rects = List<Rect>.empty(growable: true);
+
+    if (groundLayer != null) {
+      for (final ground in groundLayer.objects) {
+        final rect =
+            Rect.fromLTWH(ground.x, ground.y, ground.width, ground.height);
+        rects.add(rect);
+      }
+    }
+    add(Ground.fromRects(rects));
+
     // The method returns the object layer from the map.
-    final spawnPointsLayer = level.tileMap.getLayer<ObjectGroup>('SpawnPoints');
+    final spawnPointsLayer = tileMap.getLayer<ObjectGroup>('SpawnPoints');
+
+    final worldBounds = Rect.fromLTRB(
+      0,
+      0,
+      tileMap.map.width.toDouble() * tileMap.map.tileWidth,
+      tileMap.map.height.toDouble() * tileMap.map.tileWidth,
+    );
 
     if (spawnPointsLayer != null) {
       // Iterate through all the objects from the layer.
       for (final spawnPoint in spawnPointsLayer.objects) {
         switch (spawnPoint.type) {
           case 'Player':
-            final _player = Player(
-              Vector2(spawnPoint.x, spawnPoint.y),
-              SpriteAnimationComponent(
-                animation: SpriteAnimation.fromFrameData(
-                  await gameRef.images.load('Pink Man - Idle (32x32).png'),
-                  SpriteAnimationData.sequenced(
-                    amount: 11,
-                    textureSize: Vector2.all(32),
-                    stepTime: .05,
-                  ),
-                ),
-                size: Vector2.all(32),
-                anchor: Anchor.center,
+            gameRef.player = Player(
+              Vector2(
+                spawnPoint.x,
+                spawnPoint.y,
               ),
             );
-            add(_player);
+            await add(gameRef.player);
+            gameRef.camera.followBodyComponent(
+              gameRef.player,
+              worldBounds: worldBounds,
+            );
             break;
           case 'Apple':
-            final _apple = Apple(
+            final apple = Apple(
               position: Vector2(spawnPoint.x, spawnPoint.y),
               animations: appleAnimations,
               size: Vector2.all(32),
               current: AppleStates.idle,
             );
-            add(_apple);
+            add(apple);
             break;
           case 'Angry Pig':
-            final _angryPig = AngryPig(
+            final angryPig = AngryPig(
               position: Vector2(spawnPoint.x, spawnPoint.y),
               animations: angryPigAnimations,
               size: Vector2(36, 30),
               current: AngryPigStates.idle,
             );
-            add(_angryPig);
+            add(angryPig);
             break;
           case 'End':
-            final _end = End(
+            final end = End(
               position: Vector2(spawnPoint.x, spawnPoint.y),
               animations: endAnimations,
               size: Vector2.all(64),
               current: EndStates.idle,
             );
-            add(_end);
+            add(end);
             break;
           case 'Melon':
-            final _melon = Melon(
+            final melon = Melon(
               position: Vector2(spawnPoint.x, spawnPoint.y),
               animations: melonAnimations,
               size: Vector2.all(32),
               current: MelonStates.idle,
             );
-            add(_melon);
+            add(melon);
             break;
           case 'Bananas':
-            final _bananas = Bananas(
+            final bananas = Bananas(
               position: Vector2(spawnPoint.x, spawnPoint.y),
               animations: bananasAnimations,
               size: Vector2.all(32),
               current: BananasStates.idle,
             );
-            add(_bananas);
+            add(bananas);
             break;
         }
       }
     }
-
-    return super.onLoad();
   }
 }
