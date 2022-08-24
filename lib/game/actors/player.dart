@@ -1,6 +1,8 @@
 import 'package:flame/sprite.dart';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 enum PlayerState {
   idle,
@@ -12,7 +14,7 @@ enum PlayerState {
   hit,
 }
 
-class Player extends BodyComponent with KeyboardHandler {
+class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   final _size = Vector2.all(32);
   final Vector2 _position;
 
@@ -137,6 +139,40 @@ class Player extends BodyComponent with KeyboardHandler {
         _playerComponent.flipHorizontally();
       }
     }
+  }
+
+  @override
+  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    final isKeyDown = event is RawKeyDownEvent;
+    if (isKeyDown) {
+      if (event.logicalKey == LogicalKeyboardKey.keyA) {
+        walkLeft();
+        // print("walking left");
+      } else if (event.logicalKey == LogicalKeyboardKey.keyD) {
+        walkRight();
+        // print("walking right");
+      }
+    } else {
+      idle();
+      // print("idle");
+    }
+    if (keysPressed.contains(LogicalKeyboardKey.space)) {
+      jump();
+      print("jump");
+    }
+    return false;
+  }
+
+  @override
+  void beginContact(Object other, Contact contact) {
+    debugPrint(contact.tangentSpeed.toString());
+    super.beginContact(other, contact);
+  }
+
+  @override
+  void endContact(Object other, Contact contact) {
+    debugPrint(contact.tangentSpeed.toString());
+    super.endContact(other, contact);
   }
 
   @override

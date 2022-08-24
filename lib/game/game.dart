@@ -11,7 +11,8 @@ import 'package:squish_them_all/game/level/level.dart';
 final screenSize = Vector2(288, 208);
 final worldSize = Vector2(288, 208) / 100;
 
-class SquishThemAll extends Forge2DGame with KeyboardEvents {
+class SquishThemAll extends Forge2DGame
+    with HasKeyboardHandlerComponents, HasTappables {
   // ? makes the type nullable.
   Level? _currentLevel;
   late List<Image> spriteSheet;
@@ -59,26 +60,6 @@ class SquishThemAll extends Forge2DGame with KeyboardEvents {
     loadLevel('Level1.tmx');
 
     return super.onLoad();
-  }
-
-  @override
-  KeyEventResult onKeyEvent(RawKeyEvent event, Set keysPressed) {
-    onKeyEvent(event, keysPressed);
-    if (event is RawKeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.keyW) {
-        player.jump();
-      }
-    }
-
-    if (keysPressed.contains(LogicalKeyboardKey.keyD)) {
-      player.walkRight();
-    } else if (keysPressed.contains(LogicalKeyboardKey.keyA)) {
-      player.walkLeft();
-    } else {
-      player.idle();
-    }
-
-    return KeyEventResult.handled;
   }
 
   void loadLevel(String levelName) {
