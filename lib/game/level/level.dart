@@ -28,7 +28,7 @@ class Level extends Component with HasGameRef<SquishThemAll> {
   Future<void>? onLoad() async {
     final level = await TiledComponent.load(
       levelName,
-      Vector2.all(20),
+      Vector2.all(16) / 100,
     );
     add(level);
 
@@ -107,8 +107,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
 
     if (groundLayer != null) {
       for (final ground in groundLayer.objects) {
-        final rect =
-            Rect.fromLTWH(ground.x, ground.y, ground.width, ground.height);
+        final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
+            ground.width / 100, ground.height / 100);
         rects.add(rect);
       }
     }
@@ -120,8 +120,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
     final worldBounds = Rect.fromLTRB(
       0,
       0,
-      tileMap.map.width.toDouble() * tileMap.map.tileWidth,
-      tileMap.map.height.toDouble() * tileMap.map.tileWidth,
+      tileMap.map.width.toDouble() * tileMap.map.tileWidth / 100,
+      tileMap.map.height.toDouble() * tileMap.map.tileWidth / 100,
     );
 
     if (spawnPointsLayer != null) {
@@ -131,8 +131,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'Player':
             gameRef.player = Player(
               Vector2(
-                spawnPoint.x,
-                spawnPoint.y,
+                spawnPoint.x / 100,
+                spawnPoint.y / 100,
               ),
             );
             await add(gameRef.player);
@@ -143,34 +143,34 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             break;
           case 'Apple':
             final apple = Apple(
-              position: Vector2(spawnPoint.x, spawnPoint.y),
+              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
               animations: appleAnimations,
-              size: Vector2.all(32),
+              size: Vector2.all(32) / 100,
               current: AppleStates.idle,
             );
             add(apple);
             break;
           case 'Angry Pig':
             final angryPig = AngryPig(
-              position: Vector2(spawnPoint.x, spawnPoint.y),
+              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
               animations: angryPigAnimations,
-              size: Vector2(36, 30),
+              size: Vector2(36, 30) / 100,
               current: AngryPigStates.idle,
             );
             add(angryPig);
             break;
           case 'End':
             final end = End(
-              position: Vector2(spawnPoint.x, spawnPoint.y),
+              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
               animations: endAnimations,
-              size: Vector2.all(64),
+              size: Vector2.all(64) / 100,
               current: EndStates.idle,
             );
             add(end);
             break;
           case 'Melon':
             final melon = Melon(
-              position: Vector2(spawnPoint.x, spawnPoint.y),
+              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
               animations: melonAnimations,
               size: Vector2.all(32),
               current: MelonStates.idle,
@@ -179,9 +179,9 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             break;
           case 'Bananas':
             final bananas = Bananas(
-              position: Vector2(spawnPoint.x, spawnPoint.y),
+              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
               animations: bananasAnimations,
-              size: Vector2.all(32),
+              size: Vector2.all(32) / 100,
               current: BananasStates.idle,
             );
             add(bananas);
