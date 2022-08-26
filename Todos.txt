@@ -1,5 +1,8 @@
-1.player movement
-2.actors stay within world size (mess with camera)
+1. player movement
+2. map
+- background
+- ground
+3. convert all other actors into bodies
+4. actors stay within world size (mess with camera)
 - devkage simple platformer
 - adding wall in tiled by using "insert polygon"
-3.convert all other actors into bodies

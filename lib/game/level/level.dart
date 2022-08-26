@@ -28,7 +28,7 @@ class Level extends Component with HasGameRef<SquishThemAll> {
   Future<void>? onLoad() async {
     final level = await TiledComponent.load(
       levelName,
-      Vector2.all(16),
+      Vector2.all(20),
     );
     add(level);
 

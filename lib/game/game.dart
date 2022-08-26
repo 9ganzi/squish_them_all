@@ -1,7 +1,7 @@
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 
@@ -55,7 +55,7 @@ class SquishThemAll extends Forge2DGame
         .cast<Image>();
 
     // Basically this viewport makes sure the ratio between width and height is always the same in your game, no matter the platform.
-    camera.viewport = FixedResolutionViewport(screenSize * camera.zoom);
+    camera.viewport = FixedResolutionViewport(worldSize * camera.zoom);
 
     loadLevel('Level1.tmx');
 
