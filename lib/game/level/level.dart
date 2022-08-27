@@ -32,75 +32,41 @@ class Level extends Component with HasGameRef<SquishThemAll> {
     );
     add(level);
 
-    final appleAnimations = {
-      AppleStates.idle: SpriteSheet(
-        image: gameRef.images.fromCache('Fruits - Apple.png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-    };
-
-    final bananasAnimations = {
-      BananasStates.idle: SpriteSheet(
-        image: gameRef.images.fromCache('Fruits - Bananas.png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-    };
-
-    final melonAnimations = {
-      MelonStates.idle: SpriteSheet(
-        image: gameRef.images.fromCache('Fruits - Melon.png'),
-        srcSize: Vector2.all(32),
-      ).createAnimation(row: 0, stepTime: 0.05),
-    };
-
     final angryPigAnimations = {
-      AngryPigStates.idle: SpriteSheet(
+      AngryPigState.idle: SpriteSheet(
         image: gameRef.images.fromCache('Angry Pig - Idle (36x30).png'),
         srcSize: Vector2(36, 30),
       ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigStates.walk: SpriteSheet(
+      AngryPigState.walk: SpriteSheet(
         image: gameRef.images.fromCache('Angry Pig - Walk (36x30).png'),
         srcSize: Vector2(36, 30),
       ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigStates.hit1: SpriteSheet(
+      AngryPigState.hit1: SpriteSheet(
         image: gameRef.images.fromCache('Angry Pig - Hit 1 (36x30).png'),
         srcSize: Vector2(36, 30),
       ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigStates.run: SpriteSheet(
+      AngryPigState.run: SpriteSheet(
         image: gameRef.images.fromCache('Angry Pig - Run (36x30).png'),
         srcSize: Vector2(36, 30),
       ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigStates.hit2: SpriteSheet(
+      AngryPigState.hit2: SpriteSheet(
         image: gameRef.images.fromCache('Angry Pig - Hit 2 (36x30).png'),
         srcSize: Vector2(36, 30),
       ).createAnimation(row: 0, stepTime: 0.05),
     };
 
-    final endAnimations = {
-      EndStates.idle: SpriteSheet(
-        image: gameRef.images.fromCache('Checkpoints - End (Idle).png'),
-        srcSize: Vector2.all(64),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      EndStates.pressed: SpriteSheet(
-        image:
-            gameRef.images.fromCache('Checkpoints - End (Pressed) (64x64).png'),
-        srcSize: Vector2.all(64),
-      ).createAnimation(row: 0, stepTime: 0.05),
-    };
-
-    await spawnActors(level.tileMap, appleAnimations, angryPigAnimations,
-        endAnimations, melonAnimations, bananasAnimations);
+    await spawnActors(
+      level.tileMap,
+      angryPigAnimations,
+    );
 
     return super.onLoad();
   }
 
   Future<void> spawnActors(
-      RenderableTiledMap tileMap,
-      Map<AppleStates, SpriteAnimation> appleAnimations,
-      Map<AngryPigStates, SpriteAnimation> angryPigAnimations,
-      Map<EndStates, SpriteAnimation> endAnimations,
-      Map<MelonStates, SpriteAnimation> melonAnimations,
-      Map<BananasStates, SpriteAnimation> bananasAnimations) async {
+    RenderableTiledMap tileMap,
+    Map<AngryPigState, SpriteAnimation> angryPigAnimations,
+  ) async {
     final groundLayer = tileMap.getLayer<ObjectGroup>('Ground');
 
     final List<Rect> rects = List<Rect>.empty(growable: true);
@@ -117,11 +83,16 @@ class Level extends Component with HasGameRef<SquishThemAll> {
     // The method returns the object layer from the map.
     final spawnPointsLayer = tileMap.getLayer<ObjectGroup>('SpawnPoints');
 
+    worldSize = Vector2(
+      tileMap.map.width.toDouble() * tileMap.map.tileWidth / 100,
+      tileMap.map.height.toDouble() * tileMap.map.tileWidth / 100,
+    );
+
     final worldBounds = Rect.fromLTRB(
       0,
       0,
       tileMap.map.width.toDouble() * tileMap.map.tileWidth / 100,
-      tileMap.map.height.toDouble() * tileMap.map.tileWidth / 100,
+      tileMap.map.height.toDouble() * tileMap.map.tileHeight / 100,
     );
 
     if (spawnPointsLayer != null) {
@@ -131,8 +102,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'Player':
             gameRef.player = Player(
               Vector2(
-                spawnPoint.x / 100,
-                spawnPoint.y / 100,
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
               ),
             );
             await add(gameRef.player);
@@ -142,49 +113,41 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             );
             break;
           case 'Apple':
-            final apple = Apple(
-              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
-              animations: appleAnimations,
-              size: Vector2.all(32) / 100,
-              current: AppleStates.idle,
-            );
+            final apple = Apple(Vector2(
+              (spawnPoint.x + spawnPoint.height / 2) / 100,
+              (spawnPoint.y + spawnPoint.width / 2) / 100,
+            ));
             add(apple);
+            break;
+          case 'Bananas':
+            final bananas = Bananas(Vector2(
+              (spawnPoint.x + spawnPoint.height / 2) / 100,
+              (spawnPoint.y + spawnPoint.width / 2) / 100,
+            ));
+            add(bananas);
             break;
           case 'Angry Pig':
             final angryPig = AngryPig(
-              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
-              animations: angryPigAnimations,
-              size: Vector2(36, 30) / 100,
-              current: AngryPigStates.idle,
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
             );
             add(angryPig);
             break;
           case 'End':
-            final end = End(
-              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
-              animations: endAnimations,
-              size: Vector2.all(64) / 100,
-              current: EndStates.idle,
-            );
+            final end = End(Vector2(
+              (spawnPoint.x + spawnPoint.height / 2) / 100,
+              (spawnPoint.y + spawnPoint.width / 2) / 100,
+            ));
             add(end);
             break;
           case 'Melon':
-            final melon = Melon(
-              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
-              animations: melonAnimations,
-              size: Vector2.all(32),
-              current: MelonStates.idle,
-            );
+            final melon = Melon(Vector2(
+              (spawnPoint.x + spawnPoint.height / 2) / 100,
+              (spawnPoint.y + spawnPoint.width / 2) / 100,
+            ));
             add(melon);
-            break;
-          case 'Bananas':
-            final bananas = Bananas(
-              position: Vector2(spawnPoint.x / 100, spawnPoint.y / 100),
-              animations: bananasAnimations,
-              size: Vector2.all(32) / 100,
-              current: BananasStates.idle,
-            );
-            add(bananas);
             break;
         }
       }

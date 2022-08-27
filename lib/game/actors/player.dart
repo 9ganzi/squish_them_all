@@ -20,7 +20,6 @@ enum PlayerState {
 
 class Player extends BodyComponent with KeyboardHandler {
   final _size = Vector2(32, 32);
-  late final Vector2 _scaledSize;
   final Vector2 _position;
   int accelerationX = 0;
 
@@ -30,11 +29,7 @@ class Player extends BodyComponent with KeyboardHandler {
 
   @override
   Future<void> onLoad() async {
-    _scaledSize = _size / 100;
     await super.onLoad();
-    renderBody = false;
-    // (288 * 208) / (32 * 32) = 58.5;
-    // 58.5 characters(32*32) fit in the map(288,208)
     await gameRef.images.loadAll(
       [
         'Pink Man - Idle (32x32).png',
@@ -80,7 +75,7 @@ class Player extends BodyComponent with KeyboardHandler {
 
     _playerComponent = SpriteAnimationGroupComponent<PlayerState>(
       anchor: Anchor.center,
-      size: _scaledSize,
+      size: _size / 100,
       animations: animations,
       current: PlayerState.run,
     );
@@ -101,8 +96,7 @@ class Player extends BodyComponent with KeyboardHandler {
   }
 
   void jump() {
-    if (_playerComponent.current == PlayerState.jump ||
-        _playerComponent.current == PlayerState.fall) return;
+    if (_playerComponent.current == PlayerState.fall) return;
     final velocity = body.linearVelocity;
     body.linearVelocity = Vector2(velocity.x, -3);
     _playerComponent.current = PlayerState.jump;
@@ -177,8 +171,8 @@ class Player extends BodyComponent with KeyboardHandler {
 
     final shape = PolygonShape()
       ..setAsBox(
-        _scaledSize.x / 2 - .07,
-        _scaledSize.y / 2 - .057,
+        (_size.x / 2 - 7) / 100,
+        (_size.x / 2 - 5.7) / 100,
         Vector2(0, .043),
         0,
       );
