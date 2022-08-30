@@ -113,17 +113,21 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             );
             break;
           case 'Apple':
-            final apple = Apple(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final apple = Apple(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(apple);
             break;
           case 'Bananas':
-            final bananas = Bananas(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final bananas = Bananas(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(bananas);
             break;
           case 'Angry Pig':
@@ -136,17 +140,21 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             add(angryPig);
             break;
           case 'End':
-            final end = End(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final end = End(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(end);
             break;
           case 'Melon':
-            final melon = Melon(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final melon = Melon(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(melon);
             break;
         }

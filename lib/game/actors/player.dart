@@ -96,9 +96,9 @@ class Player extends BodyComponent with KeyboardHandler {
   }
 
   void jump() {
-    if (_playerComponent.current == PlayerState.fall) return;
+    // if (_playerComponent.current == PlayerState.fall) return;
     final velocity = body.linearVelocity;
-    body.linearVelocity = Vector2(velocity.x, -3);
+    body.linearVelocity = Vector2(velocity.x, -3.5);
     _playerComponent.current = PlayerState.jump;
   }
 
@@ -145,14 +145,14 @@ class Player extends BodyComponent with KeyboardHandler {
   @override
   bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (event is RawKeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.keyW) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
         jump();
       }
     }
 
-    if (keysPressed.contains(LogicalKeyboardKey.keyD)) {
+    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
       walkRight();
-    } else if (keysPressed.contains(LogicalKeyboardKey.keyA)) {
+    } else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
       walkLeft();
     } else {
       idle();
