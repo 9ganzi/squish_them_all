@@ -32,41 +32,12 @@ class Level extends Component with HasGameRef<SquishThemAll> {
     );
     add(level);
 
-    final angryPigAnimations = {
-      AngryPigState.idle: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Idle (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.walk: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Walk (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.hit1: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Hit 1 (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.run: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Run (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.hit2: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Hit 2 (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-    };
-
-    await spawnActors(
-      level.tileMap,
-      angryPigAnimations,
-    );
+    await spawnActors(level.tileMap);
 
     return super.onLoad();
   }
 
-  Future<void> spawnActors(
-    RenderableTiledMap tileMap,
-    Map<AngryPigState, SpriteAnimation> angryPigAnimations,
-  ) async {
+  Future<void> spawnActors(RenderableTiledMap tileMap) async {
     final groundLayer = tileMap.getLayer<ObjectGroup>('Ground');
 
     final List<Rect> rects = List<Rect>.empty(growable: true);

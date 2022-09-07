@@ -21,7 +21,7 @@ enum PlayerState {
 class Player extends BodyComponent with KeyboardHandler {
   final _size = Vector2(32, 32);
   final Vector2 _position;
-  int accelerationX = 0;
+  int _accelerationX = 0;
 
   late SpriteAnimationGroupComponent _playerComponent;
 
@@ -84,15 +84,15 @@ class Player extends BodyComponent with KeyboardHandler {
   }
 
   void idle() {
-    accelerationX = 0;
+    _accelerationX = 0;
   }
 
   void walkLeft() {
-    accelerationX = -1;
+    _accelerationX = -1;
   }
 
   void walkRight() {
-    accelerationX = 1;
+    _accelerationX = 1;
   }
 
   void jump() {
@@ -113,14 +113,14 @@ class Player extends BodyComponent with KeyboardHandler {
       _playerComponent.current = PlayerState.fall;
     } else if (velocity.y < 0.1 &&
         _playerComponent.current != PlayerState.jump) {
-      if (accelerationX != 0) {
+      if (_accelerationX != 0) {
         _playerComponent.current = PlayerState.run;
       } else {
         _playerComponent.current = PlayerState.idle;
       }
     }
 
-    velocity.x = accelerationX * 1;
+    velocity.x = _accelerationX * 1;
     body.linearVelocity = velocity;
 
     if (position.x > worldSize.x) {
@@ -131,11 +131,11 @@ class Player extends BodyComponent with KeyboardHandler {
       body.setTransform(position, 0);
     }
 
-    if (accelerationX < 0) {
+    if (_accelerationX < 0) {
       if (!_playerComponent.isFlippedHorizontally) {
         _playerComponent.flipHorizontally();
       }
-    } else if (accelerationX > 0) {
+    } else if (_accelerationX > 0) {
       if (_playerComponent.isFlippedHorizontally) {
         _playerComponent.flipHorizontally();
       }
@@ -144,19 +144,25 @@ class Player extends BodyComponent with KeyboardHandler {
 
   @override
   bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    _accelerationX = 0;
+
     if (event is RawKeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
         jump();
       }
     }
 
-    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
-      walkRight();
-    } else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
-      walkLeft();
-    } else {
-      idle();
-    }
+    _accelerationX +=
+        keysPressed.contains(LogicalKeyboardKey.arrowLeft) ? -1 : 0;
+    _accelerationX +=
+        keysPressed.contains(LogicalKeyboardKey.arrowRight) ? 1 : 0;
+    // if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
+    //   walkRight();
+    // } else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
+    //   walkLeft();
+    // } else {
+    //   idle();
+    // }
     return false;
   }
 
