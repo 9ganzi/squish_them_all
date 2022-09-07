@@ -30,23 +30,6 @@ class SquishThemAll extends Forge2DGame
     await Flame.device.fullScreen();
     await Flame.device.setLandscape();
 
-    // This will make sure to load and keep a reference to the spritesheet before starting the game.
-    spriteSheet = (await images.loadAll(
-      [
-        'Angry Pig - Idle (36x30).png',
-        'Angry Pig - Walk (36x30).png',
-        'Angry Pig - Hit 1 (36x30).png',
-        'Angry Pig - Run (36x30).png',
-        'Angry Pig - Hit 2 (36x30).png',
-        // 'Checkpoints - End (Idle).png',
-        // 'Checkpoints - End (Pressed) (64x64).png',
-        // 'Fruits - Apple.png',
-        // 'Fruits - Bananas.png',
-        // 'Fruits - Melon.png',
-      ],
-    ))
-        .cast<Image>();
-
     // Basically this viewport makes sure the ratio between width and height is always the same in your game, no matter the platform.
     camera.viewport = FixedResolutionViewport(worldSize * camera.zoom);
 
