@@ -1,3 +1,0 @@
-5. force actors stay within world size (mess with camera)
-- devkage simple platformer
-- adding wall in tiled by using "insert polygon"

@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
-import 'package:flame/sprite.dart';
+// import 'package:flame/sprite.dart';
 
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -14,6 +14,7 @@ import 'package:squish_them_all/game/actors/player.dart';
 import 'package:squish_them_all/game/actors/bananas.dart';
 import 'package:squish_them_all/game/actors/melon.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
+import 'package:squish_them_all/game/actors/wall.dart';
 
 // The mixin ensures that level can access the parent game class instance using gameRef.
 class Level extends Component with HasGameRef<SquishThemAll> {
@@ -38,18 +39,30 @@ class Level extends Component with HasGameRef<SquishThemAll> {
   }
 
   Future<void> spawnActors(RenderableTiledMap tileMap) async {
-    final groundLayer = tileMap.getLayer<ObjectGroup>('Ground');
+    final groundLayer = tileMap.getLayer<ObjectGroup>('Background');
 
-    final List<Rect> rects = List<Rect>.empty(growable: true);
+    final List<Rect> groundRects = List<Rect>.empty(growable: true);
+
+    final List<Rect> wallRects = List<Rect>.empty(growable: true);
 
     if (groundLayer != null) {
       for (final ground in groundLayer.objects) {
-        final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
-            ground.width / 100, ground.height / 100);
-        rects.add(rect);
+        switch (ground.type) {
+          case "Ground":
+            final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
+                ground.width / 100, ground.height / 100);
+            groundRects.add(rect);
+            break;
+          case "Walls":
+            final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
+                ground.width / 100, ground.height / 100);
+            wallRects.add(rect);
+            break;
+        }
       }
     }
-    add(Ground.fromRects(rects));
+    add(Ground.fromRects(groundRects));
+    add(Wall.fromRects(wallRects));
 
     // The method returns the object layer from the map.
     final spawnPointsLayer = tileMap.getLayer<ObjectGroup>('SpawnPoints');

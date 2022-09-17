@@ -9,7 +9,7 @@ import 'package:squish_them_all/game/actors/player.dart';
 import 'package:squish_them_all/game/level/level.dart';
 
 final screenSize = Vector2(288, 208);
-Vector2 worldSize = screenSize / 100;
+late Vector2 worldSize;
 
 class SquishThemAll extends Forge2DGame
     with HasKeyboardHandlerComponents, HasTappables {
@@ -31,9 +31,9 @@ class SquishThemAll extends Forge2DGame
     await Flame.device.setLandscape();
 
     // Basically this viewport makes sure the ratio between width and height is always the same in your game, no matter the platform.
-    camera.viewport = FixedResolutionViewport(worldSize * camera.zoom);
+    camera.viewport = FixedResolutionViewport(screenSize);
 
-    loadLevel('Level1.tmx');
+    loadLevel('Level1 Temp.tmx');
 
     return super.onLoad();
   }
