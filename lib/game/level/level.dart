@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
-import 'package:flame/sprite.dart';
+// import 'package:flame/sprite.dart';
 
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -14,6 +14,7 @@ import 'package:squish_them_all/game/actors/player.dart';
 import 'package:squish_them_all/game/actors/bananas.dart';
 import 'package:squish_them_all/game/actors/melon.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
+import 'package:squish_them_all/game/actors/wall.dart';
 
 // The mixin ensures that level can access the parent game class instance using gameRef.
 class Level extends Component with HasGameRef<SquishThemAll> {
@@ -32,53 +33,36 @@ class Level extends Component with HasGameRef<SquishThemAll> {
     );
     add(level);
 
-    final angryPigAnimations = {
-      AngryPigState.idle: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Idle (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.walk: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Walk (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.hit1: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Hit 1 (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.run: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Run (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-      AngryPigState.hit2: SpriteSheet(
-        image: gameRef.images.fromCache('Angry Pig - Hit 2 (36x30).png'),
-        srcSize: Vector2(36, 30),
-      ).createAnimation(row: 0, stepTime: 0.05),
-    };
-
-    await spawnActors(
-      level.tileMap,
-      angryPigAnimations,
-    );
+    await spawnActors(level.tileMap);
 
     return super.onLoad();
   }
 
-  Future<void> spawnActors(
-    RenderableTiledMap tileMap,
-    Map<AngryPigState, SpriteAnimation> angryPigAnimations,
-  ) async {
-    final groundLayer = tileMap.getLayer<ObjectGroup>('Ground');
+  Future<void> spawnActors(RenderableTiledMap tileMap) async {
+    final groundLayer = tileMap.getLayer<ObjectGroup>('Background');
 
-    final List<Rect> rects = List<Rect>.empty(growable: true);
+    final List<Rect> groundRects = List<Rect>.empty(growable: true);
+
+    final List<Rect> wallRects = List<Rect>.empty(growable: true);
 
     if (groundLayer != null) {
       for (final ground in groundLayer.objects) {
-        final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
-            ground.width / 100, ground.height / 100);
-        rects.add(rect);
+        switch (ground.type) {
+          case "Ground":
+            final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
+                ground.width / 100, ground.height / 100);
+            groundRects.add(rect);
+            break;
+          case "Walls":
+            final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
+                ground.width / 100, ground.height / 100);
+            wallRects.add(rect);
+            break;
+        }
       }
     }
-    add(Ground.fromRects(rects));
+    add(Ground.fromRects(groundRects));
+    add(Wall.fromRects(wallRects));
 
     // The method returns the object layer from the map.
     final spawnPointsLayer = tileMap.getLayer<ObjectGroup>('SpawnPoints');
@@ -113,17 +97,21 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             );
             break;
           case 'Apple':
-            final apple = Apple(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final apple = Apple(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(apple);
             break;
           case 'Bananas':
-            final bananas = Bananas(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final bananas = Bananas(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(bananas);
             break;
           case 'Angry Pig':
@@ -136,17 +124,21 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             add(angryPig);
             break;
           case 'End':
-            final end = End(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final end = End(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(end);
             break;
           case 'Melon':
-            final melon = Melon(Vector2(
-              (spawnPoint.x + spawnPoint.height / 2) / 100,
-              (spawnPoint.y + spawnPoint.width / 2) / 100,
-            ));
+            final melon = Melon(
+              Vector2(
+                (spawnPoint.x + spawnPoint.height / 2) / 100,
+                (spawnPoint.y + spawnPoint.width / 2) / 100,
+              ),
+            );
             add(melon);
             break;
         }
