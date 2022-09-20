@@ -1,9 +1,15 @@
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:squish_them_all/game/actors/ground.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:flutter/services.dart';
-import 'package:squish_them_all/game/actors/wall.dart';
+// import 'package:flame/input.dart';
+// import 'package:squish_them_all/game/actors/wall.dart';
+// import 'package:flame/components.dart';
+// import 'package:flame_forge2d/flame_forge2d.dart';
+// import 'package:flutter/services.dart';
+// import 'package:flutter/widgets.dart';
 
 enum PlayerState {
   idle,
@@ -21,17 +27,19 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   static const double _maxSpeed = 1.25;
   static const double _maxSpeed2 = _maxSpeed * _maxSpeed;
   double _direction = 0;
-  int _jumpCount = 0;
+  final double _jumpForce = -3.75;
+  final double _changeDirForce = 2.5;
   bool _isOnGround = false;
   bool _changeDir = false;
   bool _acceleratingTurn = false;
+  int extraJumpsValue = 1;
+  late int _extraJumps = extraJumpsValue;
   late SpriteAnimationGroupComponent _playerComponent;
 
   Player(this._position, {super.renderBody = false});
 
   @override
   Future<void> onLoad() async {
-    await super.onLoad();
     await gameRef.images.loadAll(
       [
         'Pink Man - Idle (32x32).png',
@@ -77,43 +85,41 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     _playerComponent = SpriteAnimationGroupComponent<PlayerState>(
       anchor: Anchor.center,
-      size: _size / 100,
+      size: _size / zoomLevel,
       animations: animations,
       current: PlayerState.idle,
     );
 
     add(_playerComponent);
+    return super.onLoad();
   }
 
   void jump() {
-    if (_jumpCount > 2 ||
-        _playerComponent.current == PlayerState.fall ||
-        _playerComponent.current == PlayerState.jump) return;
     final velocity = body.linearVelocity.clone();
 
-    body.linearVelocity = Vector2(velocity.x, -3.75);
-    // body.applyLinearImpulse(Vector2(velocity.x, body.mass * -3));
-    _playerComponent.current = PlayerState.jump;
+    if (_isOnGround) {
+      body.linearVelocity = Vector2(velocity.x, _jumpForce);
+      _playerComponent.current = PlayerState.jump;
+    } else if (_extraJumps > 0) {
+      body.linearVelocity = Vector2(velocity.x, _jumpForce);
+      _extraJumps -= 1;
+      _playerComponent.current = PlayerState.doubleJump;
+    }
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    // print(body.linearVelocity.x);
-
     final velocity = body.linearVelocity.clone();
     final position = body.position;
 
     if (velocity.y > 0) {
-      if (_jumpCount == 0) {
-        _jumpCount = 1;
-      }
       if (velocity.y > .1) {
         _playerComponent.current = PlayerState.fall;
       }
     } else if (velocity.y < .1 &&
-        _playerComponent.current != PlayerState.jump) {
+        _playerComponent.current != PlayerState.doubleJump) {
       if (velocity.x != 0) {
         _playerComponent.current = PlayerState.run;
       } else {
@@ -129,11 +135,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           if (!(velocity.x * velocity.x == _maxSpeed2)) {
             body.applyForce(Vector2(_direction, 0));
           }
-          // print("steady force");
           //  when you are making a turn
         } else {
-          // apply bigger force to make the turn faster
-          body.applyForce(Vector2(_direction * 2.5, 0));
+          // apply greater force to make the turn faster
+          body.applyForce(Vector2(_direction * _changeDirForce, 0));
           if (velocity.x * velocity.x >= _maxSpeed2 * .5) {
             _acceleratingTurn = true;
           } else {
@@ -195,7 +200,30 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is Wall) {}
+    if (other is Ground) {
+      if (contact.fixtureA.isSensor) {
+        _isOnGround = true;
+        _extraJumps = extraJumpsValue;
+      }
+      if (contact.fixtureB.isSensor) {
+        _isOnGround = true;
+        _extraJumps = extraJumpsValue;
+      }
+    }
+    super.beginContact(other, contact);
+  }
+
+  @override
+  void endContact(Object other, Contact contact) {
+    if (other is Ground) {
+      if (contact.fixtureA.isSensor) {
+        _isOnGround = false;
+      }
+      if (contact.fixtureB.isSensor) {
+        _isOnGround = false;
+      }
+    }
+    super.endContact(other, contact);
   }
 
   @override
@@ -209,9 +237,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     final shape = PolygonShape()
       ..setAsBox(
-        (_size.x / 2 - 9.5) / 100,
-        (_size.x / 2 - 5.7) / 100,
-        Vector2(0, .033),
+        (_size.x / 2 - 9.5) / zoomLevel,
+        (_size.x / 2 - 5.7) / zoomLevel,
+        Vector2(0, 3.3) / zoomLevel,
+        // Vector2(0, 0),
         0,
       );
 
@@ -220,8 +249,23 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       ..friction = 0
       ..restitution = 0;
 
+    // final footSensor = PolygonShape()
+    //   ..setAsBox(
+    //     shape.vertices[2][0] / 2,
+    //     shape.vertices[2][0] / 2,
+    //     Vector2(0, _size.y / 1.5) / zoomLevel,
+    //     0,
+    //   );
+
+    final footSensor = CircleShape()
+      ..position.setFrom(Vector2(0, _size.y / 2) / zoomLevel)
+      ..radius = 2 / zoomLevel;
+
+    final footSensorFixture = FixtureDef(footSensor)..isSensor = true;
+
     return world.createBody(bodyDef)
       ..createFixture(fixtureDef)
+      ..createFixture(footSensorFixture)
       ..setFixedRotation(true);
   }
 }
