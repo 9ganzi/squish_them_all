@@ -29,7 +29,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   double _direction = 0;
   final double _jumpForce = -3.75;
   final double _changeDirForce = 2.5;
-  bool _isOnGround = false;
+  int _numGroundContacts = 0;
   bool _changeDir = false;
   bool _acceleratingTurn = false;
   int extraJumpsValue = 1;
@@ -97,13 +97,11 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void jump() {
     final velocity = body.linearVelocity.clone();
 
-    if (_isOnGround) {
+    if (_numGroundContacts > 0) {
       body.linearVelocity = Vector2(velocity.x, _jumpForce);
-      _playerComponent.current = PlayerState.jump;
     } else if (_extraJumps > 0) {
       body.linearVelocity = Vector2(velocity.x, _jumpForce);
       _extraJumps -= 1;
-      _playerComponent.current = PlayerState.doubleJump;
     }
   }
 
@@ -114,12 +112,25 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final velocity = body.linearVelocity.clone();
     final position = body.position;
 
-    if (velocity.y > 0) {
-      if (velocity.y > .1) {
+    // print(_numGroundContacts > 0);
+
+    // player is in the air
+    if (_numGroundContacts == 0) {
+      // downward velocity
+      if (velocity.y > 0) {
         _playerComponent.current = PlayerState.fall;
+        // upward velocity
+      } else if (velocity.y < 0) {
+        if (_extraJumps != 0) {
+          _playerComponent.current = PlayerState.jump;
+          // using different animation for the last jump
+        } else {
+          _playerComponent.current = PlayerState.doubleJump;
+        }
       }
-    } else if (velocity.y < .1 &&
-        _playerComponent.current != PlayerState.doubleJump) {
+      // player is on the ground
+    } else {
+      // player is either moving left or right
       if (velocity.x != 0) {
         _playerComponent.current = PlayerState.run;
       } else {
@@ -127,8 +138,9 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       }
     }
 
+    // player
     if (_direction != 0) {
-      // velocity is slower or equalt to the _maxSpeed
+      // velocity is slower or equal to the _maxSpeed
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
         // when you are not making a turn
         if (!_changeDir && !_acceleratingTurn) {
@@ -202,11 +214,11 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void beginContact(Object other, Contact contact) {
     if (other is Ground) {
       if (contact.fixtureA.isSensor) {
-        _isOnGround = true;
+        _numGroundContacts += 1;
         _extraJumps = extraJumpsValue;
       }
       if (contact.fixtureB.isSensor) {
-        _isOnGround = true;
+        _numGroundContacts += 1;
         _extraJumps = extraJumpsValue;
       }
     }
@@ -217,10 +229,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void endContact(Object other, Contact contact) {
     if (other is Ground) {
       if (contact.fixtureA.isSensor) {
-        _isOnGround = false;
+        _numGroundContacts -= 1;
       }
       if (contact.fixtureB.isSensor) {
-        _isOnGround = false;
+        _numGroundContacts -= 1;
       }
     }
     super.endContact(other, contact);
@@ -240,7 +252,6 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         (_size.x / 2 - 9.5) / zoomLevel,
         (_size.x / 2 - 5.7) / zoomLevel,
         Vector2(0, 3.3) / zoomLevel,
-        // Vector2(0, 0),
         0,
       );
 
@@ -249,17 +260,11 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       ..friction = 0
       ..restitution = 0;
 
-    // final footSensor = PolygonShape()
-    //   ..setAsBox(
-    //     shape.vertices[2][0] / 2,
-    //     shape.vertices[2][0] / 2,
-    //     Vector2(0, _size.y / 1.5) / zoomLevel,
-    //     0,
-    //   );
-
     final footSensor = CircleShape()
-      ..position.setFrom(Vector2(0, _size.y / 2) / zoomLevel)
-      ..radius = 2 / zoomLevel;
+      // ..position.setFrom(Vector2(0, _size.y / 2) / zoomLevel)
+      // ..radius = 2 / zoomLevel;
+      ..position.setFrom(Vector2(0, shape.vertices[2][1]))
+      ..radius = shape.vertices[2][0] + 0.75 / zoomLevel;
 
     final footSensorFixture = FixtureDef(footSensor)..isSensor = true;
 
