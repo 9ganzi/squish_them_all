@@ -138,7 +138,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       }
     }
 
-    // player
+    // player is either moving left or right
     if (_direction != 0) {
       // velocity is slower or equal to the _maxSpeed
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
@@ -151,28 +151,34 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         } else {
           // apply greater force to make the turn faster
           body.applyForce(Vector2(_direction * _changeDirForce, 0));
+          // until the velocity reaches half of the max speed, apply greater force
           if (velocity.x * velocity.x >= _maxSpeed2 * .5) {
             _acceleratingTurn = true;
+            // once the velocity surpasses half of the max speed, apply normal force
           } else {
             _changeDir = false;
           }
         }
       }
     }
+
+    // if the velocity surpasses the max speed, directly set the velocity to be max speed. This will prevent further applyForce, i.e. repetitive calculation
     if (velocity.x * velocity.x > _maxSpeed2) {
       body.linearVelocity =
           Vector2(body.linearVelocity.x.sign * _maxSpeed, velocity.y);
       _acceleratingTurn = false;
     }
 
-    if (position.x > worldSize.x) {
-      position.x = 0;
-      body.setTransform(position, 0);
-    } else if (position.x < 0) {
-      position.x = worldSize.x;
-      body.setTransform(position, 0);
-    }
+    // // When a player passes one side of the boundary, it will reappear on the other side of the boundary
+    // if (position.x > worldSize.x) {
+    //   position.x = 0;
+    //   body.setTransform(position, 0);
+    // } else if (position.x < 0) {
+    //   position.x = worldSize.x;
+    //   body.setTransform(position, 0);
+    // }
 
+    // flip animations according to player directions
     if (_direction < 0) {
       if (!_playerComponent.isFlippedHorizontally) {
         _changeDir = true;

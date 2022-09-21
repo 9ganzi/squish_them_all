@@ -29,7 +29,7 @@ class Level extends Component with HasGameRef<SquishThemAll> {
   Future<void>? onLoad() async {
     final level = await TiledComponent.load(
       levelName,
-      Vector2.all(16) / 100,
+      Vector2.all(16) / zoomLevel,
     );
     add(level);
 
@@ -43,40 +43,47 @@ class Level extends Component with HasGameRef<SquishThemAll> {
 
     final List<Rect> groundRects = List<Rect>.empty(growable: true);
 
-    final List<Rect> wallRects = List<Rect>.empty(growable: true);
-
     if (groundLayer != null) {
       for (final ground in groundLayer.objects) {
         switch (ground.type) {
           case "Ground":
-            final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
-                ground.width / 100, ground.height / 100);
+            final rect = Rect.fromLTWH(
+                ground.x / zoomLevel,
+                ground.y / zoomLevel,
+                ground.width / zoomLevel,
+                ground.height / zoomLevel);
             groundRects.add(rect);
             break;
-          case "Walls":
-            final rect = Rect.fromLTWH(ground.x / 100, ground.y / 100,
-                ground.width / 100, ground.height / 100);
-            wallRects.add(rect);
-            break;
+          // case "Walls":
+          //   final rect = Rect.fromLTWH(ground.x / zoomLevel, ground.y / zoomLevel,
+          //       ground.width / zoomLevel, ground.height / zoomLevel);
+          //   wallRects.add(rect);
+          //   break;
         }
       }
     }
     add(Ground.fromRects(groundRects));
-    add(Wall.fromRects(wallRects));
 
     // The method returns the object layer from the map.
     final spawnPointsLayer = tileMap.getLayer<ObjectGroup>('SpawnPoints');
 
     worldSize = Vector2(
-      tileMap.map.width.toDouble() * tileMap.map.tileWidth / 100,
-      tileMap.map.height.toDouble() * tileMap.map.tileWidth / 100,
+      tileMap.map.width.toDouble() * tileMap.map.tileWidth / zoomLevel,
+      tileMap.map.height.toDouble() * tileMap.map.tileWidth / zoomLevel,
     );
 
+    final List<EdgeShape> wallEdges = List<EdgeShape>.empty(growable: true);
+
+    add(Wall(wallEdges, worldSize));
+
+    // print(
+    //     '\ntileMap.map.width.toDouble() = ${tileMap.map.width.toDouble()}\ntileMap.map.tileWidth = ${tileMap.map.tileWidth}');
+    // print(worldSize);
     final worldBounds = Rect.fromLTRB(
       0,
       0,
-      tileMap.map.width.toDouble() * tileMap.map.tileWidth / 100,
-      tileMap.map.height.toDouble() * tileMap.map.tileHeight / 100,
+      tileMap.map.width.toDouble() * tileMap.map.tileWidth / zoomLevel,
+      tileMap.map.height.toDouble() * tileMap.map.tileHeight / zoomLevel,
     );
 
     if (spawnPointsLayer != null) {
@@ -86,8 +93,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'Player':
             gameRef.player = Player(
               Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / 100,
-                (spawnPoint.y + spawnPoint.width / 2) / 100,
+                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
+                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
               ),
             );
             await add(gameRef.player);
@@ -99,8 +106,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'Apple':
             final apple = Apple(
               Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / 100,
-                (spawnPoint.y + spawnPoint.width / 2) / 100,
+                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
+                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
               ),
             );
             add(apple);
@@ -108,8 +115,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'Bananas':
             final bananas = Bananas(
               Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / 100,
-                (spawnPoint.y + spawnPoint.width / 2) / 100,
+                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
+                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
               ),
             );
             add(bananas);
@@ -117,8 +124,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'Angry Pig':
             final angryPig = AngryPig(
               Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / 100,
-                (spawnPoint.y + spawnPoint.width / 2) / 100,
+                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
+                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
               ),
             );
             add(angryPig);
@@ -126,8 +133,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'End':
             final end = End(
               Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / 100,
-                (spawnPoint.y + spawnPoint.width / 2) / 100,
+                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
+                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
               ),
             );
             add(end);
@@ -135,8 +142,8 @@ class Level extends Component with HasGameRef<SquishThemAll> {
           case 'Melon':
             final melon = Melon(
               Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / 100,
-                (spawnPoint.y + spawnPoint.width / 2) / 100,
+                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
+                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
               ),
             );
             add(melon);
