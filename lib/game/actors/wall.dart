@@ -5,28 +5,32 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/game.dart';
 
 class Wall extends BodyComponent<SquishThemAll> {
-  final List<Rect> rects;
+  final Vector2 _worldSize;
+  final List<EdgeShape> edges;
 
-  Wall.fromRects(this.rects) {
-    renderBody = false;
-  }
+  Wall(this.edges, this._worldSize);
 
   @override
   Body createBody() {
-    debugMode = true;
+    // debugMode = true;
     late Body wall;
 
-    final bodyDef = BodyDef()..userData = this;
-    bodyDef.type = BodyType.static;
+    final bodyDef = BodyDef(
+      type: BodyType.static,
+      userData: this,
+    );
+
     wall = world.createBody(bodyDef);
 
-    for (final rect in rects) {
-      final shape = PolygonShape();
-      shape.setAsBox(rect.width / 2, rect.height / 2,
-          Vector2(rect.center.dx, rect.center.dy), 0.0);
+    final shape1 = EdgeShape()..set(Vector2.zero(), Vector2(0, _worldSize.y));
+    final shape2 = EdgeShape()..set(Vector2.zero(), Vector2(_worldSize.x, 0));
+    final shape3 = EdgeShape()
+      ..set(Vector2(_worldSize.x, 0), Vector2(_worldSize.x, _worldSize.y));
 
-      wall.createFixtureFromShape(shape);
-    }
+    wall
+      ..createFixtureFromShape(shape1)
+      ..createFixtureFromShape(shape2)
+      ..createFixtureFromShape(shape3);
 
     return wall;
   }

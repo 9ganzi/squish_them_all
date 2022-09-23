@@ -16,8 +16,11 @@ class Ground extends BodyComponent<SquishThemAll> {
     // debugMode = true;
     late Body ground;
 
-    final bodyDef = BodyDef()..userData = this;
-    bodyDef.type = BodyType.static;
+    final bodyDef = BodyDef(
+      type: BodyType.static,
+      userData: this,
+    );
+
     ground = world.createBody(bodyDef);
 
     for (final rect in rects) {

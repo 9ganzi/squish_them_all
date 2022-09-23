@@ -63,7 +63,7 @@ class AngryPig extends BodyComponent {
 
     _angryPigComponent = SpriteAnimationGroupComponent<AngryPigState>(
       anchor: Anchor.center,
-      size: _size / 100,
+      size: _size / zoomLevel,
       animations: animations,
       current: AngryPigState.run,
     );
@@ -129,8 +129,8 @@ class AngryPig extends BodyComponent {
 
     final shape = PolygonShape()
       ..setAsBox(
-        (_size.x / 2 - 7) / 100,
-        (_size.y / 2 - 5) / 100,
+        (_size.x / 2 - 7) / zoomLevel,
+        (_size.y / 2 - 5) / zoomLevel,
         Vector2(0, .035),
         0,
       );

@@ -10,6 +10,7 @@ import 'package:squish_them_all/game/level/level.dart';
 
 final screenSize = Vector2(288, 208);
 late Vector2 worldSize;
+double zoomLevel = 100;
 
 class SquishThemAll extends Forge2DGame
     with HasKeyboardHandlerComponents, HasTappables {
@@ -21,7 +22,7 @@ class SquishThemAll extends Forge2DGame
   // Todo: change gravity back to 15
   SquishThemAll()
       : super(
-          zoom: 100,
+          zoom: zoomLevel,
           gravity: Vector2(0, 15),
         );
 
