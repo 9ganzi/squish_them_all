@@ -266,11 +266,17 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       ..friction = 0
       ..restitution = 0;
 
-    final footSensor = CircleShape()
-      // ..position.setFrom(Vector2(0, _size.y / 2) / zoomLevel)
-      // ..radius = 2 / zoomLevel;
-      ..position.setFrom(Vector2(0, shape.vertices[2][1]))
-      ..radius = shape.vertices[2][0] + 0.75 / zoomLevel;
+    // final footSensor = CircleShape()
+    //   ..position.setFrom(Vector2(0, shape.vertices[2][1]))
+    //   ..radius = shape.vertices[2][0] + 0.75 / zoomLevel;
+
+    final footSensor = PolygonShape()
+      ..setAsBox(
+        shape.vertices[2][0],
+        (shape.vertices[2][1] - shape.centroid[1]) / 2,
+        Vector2(0, shape.vertices[2][1]),
+        0,
+      );
 
     final footSensorFixture = FixtureDef(footSensor)..isSensor = true;
 
