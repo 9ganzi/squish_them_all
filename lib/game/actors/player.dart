@@ -32,6 +32,12 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   int _numGroundContacts = 0;
   bool _changeDir = false;
   bool _acceleratingTurn = false;
+  bool _isTouchingFront = false;
+  // fixture is only needed for testing
+  late Fixture fixture;
+  late Fixture footSensorFixture;
+  late Fixture leftSensorFixture;
+  late Fixture rightSensorFixture;
   int extraJumpsValue = 1;
   late int _extraJumps = extraJumpsValue;
   late SpriteAnimationGroupComponent _playerComponent;
@@ -99,8 +105,14 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     if (_numGroundContacts > 0) {
       body.linearVelocity = Vector2(velocity.x, _jumpForce);
+      // if (_numGroundContacts == 1) {
+      //   _numGroundContacts -= 1;
+      // }
     } else if (_extraJumps > 0) {
       body.linearVelocity = Vector2(velocity.x, _jumpForce);
+      // if (_numGroundContacts == 1) {
+      //   _numGroundContacts -= 1;
+      // }
       _extraJumps -= 1;
     }
   }
@@ -112,13 +124,21 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final velocity = body.linearVelocity.clone();
     final position = body.position;
 
-    // print(_numGroundContacts > 0);
+    print(_numGroundContacts);
+
+    // print(_isTouchingFront);
 
     // player is in the air
-    if (_numGroundContacts == 0) {
+    if (_numGroundContacts == 0 ||
+        (_numGroundContacts == 1 && _isTouchingFront)) {
       // downward velocity
       if (velocity.y > 0) {
-        _playerComponent.current = PlayerState.fall;
+        if (_isTouchingFront) {
+          body.gravityOverride = Vector2(0, 0);
+          _playerComponent.current = PlayerState.wallJump;
+        } else {
+          _playerComponent.current = PlayerState.fall;
+        }
         // upward velocity
       } else if (velocity.y < 0) {
         if (_extraJumps != 0) {
@@ -138,19 +158,26 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       }
     }
 
+    double wallStop = 1;
+
+    if (_isTouchingFront) {
+      wallStop = _changeDirForce;
+    }
+
     // player is either moving left or right
     if (_direction != 0) {
       // velocity is slower or equal to the _maxSpeed
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
         // when you are not making a turn
         if (!_changeDir && !_acceleratingTurn) {
-          if (!(velocity.x * velocity.x == _maxSpeed2)) {
+          if (!(velocity.x * velocity.x == _maxSpeed2) &&
+              _numGroundContacts < 3) {
             body.applyForce(Vector2(_direction, 0));
           }
           //  when you are making a turn
         } else {
           // apply greater force to make the turn faster
-          body.applyForce(Vector2(_direction * _changeDirForce, 0));
+          body.applyForce(Vector2(_direction * _changeDirForce / wallStop, 0));
           // until the velocity reaches half of the max speed, apply greater force
           if (velocity.x * velocity.x >= _maxSpeed2 * .5) {
             _acceleratingTurn = true;
@@ -220,14 +247,35 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void beginContact(Object other, Contact contact) {
     if (other is Ground) {
       if (contact.fixtureA.isSensor) {
-        _numGroundContacts += 1;
-        _extraJumps = extraJumpsValue;
+        if (contact.fixtureA == footSensorFixture) {
+          _numGroundContacts += 1;
+          _extraJumps = extraJumpsValue;
+        } else {
+          _isTouchingFront = true;
+          // body.linearVelocity.x = 0;
+        }
+        // print(
+        //     '1st if(SEN)\ncontact.fixtureA.body.userData = ${contact.fixtureA.body.userData}\ncontact.fixtureA == fixture = ${contact.fixtureA == fixture}\ncontact.fixtureA == footSensorFixture = ${contact.fixtureA == footSensorFixture}\ncontact.fixtureA == leftSensorFixture = ${contact.fixtureA == leftSensorFixture}\ncontact.fixtureA == rightSensorFixture = ${contact.fixtureA == rightSensorFixture}');
+      } else {
+        // print(
+        //     '1st else(NAS)\ncontact.fixtureA.body.userData = ${contact.fixtureA.body.userData}\ncontact.fixtureA == fixture = ${contact.fixtureA == fixture}\ncontact.fixtureA == footSensorFixture = ${contact.fixtureA == footSensorFixture}\ncontact.fixtureA == leftSensorFixture = ${contact.fixtureA == leftSensorFixture}\ncontact.fixtureA == rightSensorFixture = ${contact.fixtureA == rightSensorFixture}');
       }
       if (contact.fixtureB.isSensor) {
-        _numGroundContacts += 1;
-        _extraJumps = extraJumpsValue;
+        if (contact.fixtureB == footSensorFixture) {
+          _numGroundContacts += 1;
+          _extraJumps = extraJumpsValue;
+        } else {
+          _isTouchingFront = true;
+          // body.linearVelocity.x = 0;
+        }
+        // print(
+        //     '2nd if(SEN)\ncontact.fixtureB.body.userData = ${contact.fixtureB.body.userData}\ncontact.fixtureB == fixture = ${contact.fixtureB == fixture}\ncontact.fixtureB == footSensorFixture = ${contact.fixtureB == footSensorFixture}\ncontact.fixtureB == leftSensorFixture = ${contact.fixtureB == leftSensorFixture}\ncontact.fixtureB == rightSensorFixture = ${contact.fixtureB == rightSensorFixture}');
+      } else {
+        // print(
+        //     '2nd else(NAS)\ncontact.fixtureB.body.userData = ${contact.fixtureB.body.userData}\ncontact.fixtureB == fixture = ${contact.fixtureB == fixture}\ncontact.fixtureB == footSensorFixture = ${contact.fixtureB == footSensorFixture}\ncontact.fixtureB == leftSensorFixture = ${contact.fixtureB == leftSensorFixture}\ncontact.fixtureB == rightSensorFixture = ${contact.fixtureB == rightSensorFixture}');
       }
     }
+
     super.beginContact(other, contact);
   }
 
@@ -235,10 +283,18 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void endContact(Object other, Contact contact) {
     if (other is Ground) {
       if (contact.fixtureA.isSensor) {
-        _numGroundContacts -= 1;
+        if (contact.fixtureA == footSensorFixture) {
+          _numGroundContacts -= 1;
+        } else {
+          _isTouchingFront = false;
+        }
       }
       if (contact.fixtureB.isSensor) {
-        _numGroundContacts -= 1;
+        if (contact.fixtureB == footSensorFixture) {
+          _numGroundContacts -= 1;
+        } else {
+          _isTouchingFront = false;
+        }
       }
     }
     super.endContact(other, contact);
@@ -255,7 +311,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     final shape = PolygonShape()
       ..setAsBox(
-        (_size.x / 2 - 9.5) / zoomLevel,
+        (_size.x / 2 - 12) / zoomLevel,
         (_size.x / 2 - 5.7) / zoomLevel,
         Vector2(0, 3.3) / zoomLevel,
         0,
@@ -273,16 +329,59 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final footSensor = PolygonShape()
       ..setAsBox(
         shape.vertices[2][0],
-        (shape.vertices[2][1] - shape.centroid[1]) / 2,
-        Vector2(0, shape.vertices[2][1]),
+        shape.vertices[2][0] / 4,
+        Vector2(0, _size.y / 2) / zoomLevel,
         0,
       );
 
-    final footSensorFixture = FixtureDef(footSensor)..isSensor = true;
+    final footSensorFixtureDef = FixtureDef(footSensor)..isSensor = true;
 
-    return world.createBody(bodyDef)
-      ..createFixture(fixtureDef)
-      ..createFixture(footSensorFixture)
-      ..setFixedRotation(true);
+    // final leftSensor = PolygonShape()
+    //   ..setAsBox(
+    //     shape.vertices[2][0] * .1,
+    //     (shape.vertices[2][1] - shape.centroid.y) * .75,
+    //     Vector2(-shape.vertices[2][0], shape.centroid.y),
+    //     0,
+    //   );
+
+    final leftSensor = PolygonShape()
+      ..setAsBox(
+        shape.vertices[2][0] * .3,
+        (shape.vertices[2][1] - shape.centroid.y) * .85,
+        Vector2(-(shape.vertices[2][0] * 1.4), shape.centroid.y),
+        0,
+      );
+
+    final leftSensorFixtureDef = FixtureDef(
+      leftSensor,
+      userData: this,
+      isSensor: true,
+    );
+
+    final rightSensor = PolygonShape()
+      ..setAsBox(
+        leftSensor.vertices[2][0] - leftSensor.centroid.x,
+        (leftSensor.vertices[2][1] - leftSensor.centroid.y),
+        Vector2(-leftSensor.centroid.x, leftSensor.centroid.y),
+        0,
+      );
+
+    final rightSensorFixtureDef = FixtureDef(
+      rightSensor,
+      userData: this,
+      isSensor: true,
+    );
+
+    final body = world.createBody(bodyDef)..setFixedRotation(true);
+
+    fixture = body.createFixture(fixtureDef);
+
+    footSensorFixture = body.createFixture(footSensorFixtureDef);
+
+    leftSensorFixture = body.createFixture(leftSensorFixtureDef);
+
+    rightSensorFixture = body.createFixture(rightSensorFixtureDef);
+
+    return body;
   }
 }

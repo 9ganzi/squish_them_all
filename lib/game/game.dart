@@ -23,7 +23,7 @@ class SquishThemAll extends Forge2DGame
   SquishThemAll()
       : super(
           zoom: zoomLevel,
-          gravity: Vector2(0, 15),
+          gravity: Vector2(0, 5),
         );
 
   @override
