@@ -6,7 +6,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 
 import 'package:squish_them_all/game/actors/player.dart';
+import 'package:squish_them_all/game/hud/hud.dart';
 import 'package:squish_them_all/game/level/level.dart';
+import 'package:squish_them_all/game/model/player_data.dart';
+// import 'package:squish_them_all/game/model/player_data.dart';
 
 final screenSize = Vector2(288, 208);
 late Vector2 worldSize;
@@ -18,6 +21,8 @@ class SquishThemAll extends Forge2DGame
   Level? _currentLevel;
   late List<Image> spriteSheet;
   late Player player;
+
+  // final playerData = PlayerData();
 
   // Todo: change gravity back to 15
   SquishThemAll()
@@ -31,10 +36,13 @@ class SquishThemAll extends Forge2DGame
     await Flame.device.fullScreen();
     await Flame.device.setLandscape();
 
-    // Basically this viewport makes sure the ratio between width and height is always the same in your game, no matter the platform.
+    // Basically this viewport makes sure the ratio between width and height
+    // is always the same in your game, no matter the platform.
     camera.viewport = FixedResolutionViewport(screenSize);
 
     loadLevel('Level1 Temp.tmx');
+
+    add(Hud(priority: 1));
 
     return super.onLoad();
   }
