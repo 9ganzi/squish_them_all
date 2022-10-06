@@ -8,7 +8,10 @@ class Hud extends Component with HasGameRef<SquishThemAll> {
   }
 
   @override
-  Future<void>? onLoad() {
+  Future<void>? onLoad() async {
+    // load image
+    await gameRef.images.load('Pink Man - Idle (32x32).png');
+
     // Score text
     final scoreTextComponent =
         TextComponent(text: 'Score: 0', position: Vector2.all(10));
@@ -23,6 +26,7 @@ class Hud extends Component with HasGameRef<SquishThemAll> {
     add(healthTextComponent);
 
     final playerSprite = SpriteComponent.fromImage(
+      // gameRef.images.load('Pink Man - Idle (32x32).png'),
       gameRef.images.fromCache('Pink Man - Idle (32x32).png'),
       srcPosition: Vector2.zero(),
       srcSize: Vector2.all(32),

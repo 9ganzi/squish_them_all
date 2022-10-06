@@ -162,7 +162,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       }
     }
 
-    // if the velocity surpasses the max speed, directly set the velocity to be max speed. This will prevent further applyForce, i.e. repetitive calculation
+    // if the velocity surpasses the max speed, directly set the velocity to be max speed. This will
+    // prevent further applyForce, i.e. repetitive calculation
     if (velocity.x * velocity.x > _maxSpeed2) {
       body.linearVelocity =
           Vector2(body.linearVelocity.x.sign * _maxSpeed, velocity.y);
@@ -170,6 +171,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     }
 
     // // When a player passes one side of the boundary, it will reappear on the other side of the boundary
+
     // if (position.x > worldSize.x) {
     //   position.x = 0;
     //   body.setTransform(position, 0);
@@ -266,11 +268,17 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       ..friction = 0
       ..restitution = 0;
 
-    final footSensor = CircleShape()
-      // ..position.setFrom(Vector2(0, _size.y / 2) / zoomLevel)
-      // ..radius = 2 / zoomLevel;
-      ..position.setFrom(Vector2(0, shape.vertices[2][1]))
-      ..radius = shape.vertices[2][0] + 0.75 / zoomLevel;
+    // final footSensor = CircleShape()
+    //   ..position.setFrom(Vector2(0, shape.vertices[2][1]))
+    //   ..radius = shape.vertices[2][0] + 0.75 / zoomLevel;
+
+    final footSensor = PolygonShape()
+      ..setAsBox(
+        shape.vertices[2][0],
+        (shape.vertices[2][1] - shape.centroid[1]) / 2,
+        Vector2(0, shape.vertices[2][1]),
+        0,
+      );
 
     final footSensorFixture = FixtureDef(footSensor)..isSensor = true;
 
