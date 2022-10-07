@@ -23,14 +23,14 @@ class Wall extends BodyComponent<SquishThemAll> {
     wall = world.createBody(bodyDef);
 
     final shape1 = EdgeShape()..set(Vector2.zero(), Vector2(0, _worldSize.y));
-    final shape2 = EdgeShape()..set(Vector2.zero(), Vector2(_worldSize.x, 0));
-    final shape3 = EdgeShape()
+    final shape2 = EdgeShape()
       ..set(Vector2(_worldSize.x, 0), Vector2(_worldSize.x, _worldSize.y));
+    // final shape3 = EdgeShape()..set(Vector2.zero(), Vector2(_worldSize.x, 0));
 
     wall
       ..createFixtureFromShape(shape1)
-      ..createFixtureFromShape(shape2)
-      ..createFixtureFromShape(shape3);
+      ..createFixtureFromShape(shape2);
+    // ..createFixtureFromShape(shape3);
 
     return wall;
   }
