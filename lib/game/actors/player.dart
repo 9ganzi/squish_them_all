@@ -38,8 +38,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   late Fixture footSensorFixture;
   late Fixture leftSensorFixture;
   late Fixture rightSensorFixture;
-  int extraJumpsValue = 1;
-  late int _extraJumps = extraJumpsValue;
+  final int _extraJumpsValue = 1;
+  late int _extraJumps = _extraJumpsValue;
   late SpriteAnimationGroupComponent _playerComponent;
 
   Player(this._position, {super.renderBody = false});
@@ -124,17 +124,16 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final velocity = body.linearVelocity.clone();
     final position = body.position;
 
-    print(_numGroundContacts);
-
-    // print(_isTouchingFront);
+    // print(_numGroundContacts);
 
     // player is in the air
     if (_numGroundContacts == 0 ||
         (_numGroundContacts == 1 && _isTouchingFront)) {
       // downward velocity
       if (velocity.y > 0) {
-        if (_isTouchingFront) {
-          body.gravityOverride = Vector2(0, 0);
+        if (_isTouchingFront && !_changeDir) {
+          body.linearVelocity = Vector2(velocity.x, .5);
+          // body.gravityOverride = Vector2(0, 0);
           _playerComponent.current = PlayerState.wallJump;
         } else {
           _playerComponent.current = PlayerState.fall;
@@ -150,8 +149,9 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       }
       // player is on the ground
     } else {
+      // body.gravityOverride = Vector2(0, 15);
       // player is either moving left or right
-      if (velocity.x != 0) {
+      if (velocity.x != 0 && !_isTouchingFront) {
         _playerComponent.current = PlayerState.run;
       } else {
         _playerComponent.current = PlayerState.idle;
@@ -176,6 +176,9 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           }
           //  when you are making a turn
         } else {
+          // if (_numGroundContacts == 1 && _isTouchingFront) {
+          //   body.linearVelocity = Vector2(_direction * 10, 0);
+          // }
           // apply greater force to make the turn faster
           body.applyForce(Vector2(_direction * _changeDirForce / wallStop, 0));
           // until the velocity reaches half of the max speed, apply greater force
@@ -207,12 +210,14 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     // flip animations according to player directions
     if (_direction < 0) {
-      if (!_playerComponent.isFlippedHorizontally) {
+      if (!_playerComponent.isFlippedHorizontally &&
+          _playerComponent.current != PlayerState.wallJump) {
         _changeDir = true;
         _playerComponent.flipHorizontally();
       }
     } else if (_direction > 0) {
-      if (_playerComponent.isFlippedHorizontally) {
+      if (_playerComponent.isFlippedHorizontally &&
+          _playerComponent.current != PlayerState.wallJump) {
         _changeDir = true;
         _playerComponent.flipHorizontally();
       }
@@ -249,30 +254,20 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       if (contact.fixtureA.isSensor) {
         if (contact.fixtureA == footSensorFixture) {
           _numGroundContacts += 1;
-          _extraJumps = extraJumpsValue;
+          _extraJumps = _extraJumpsValue;
         } else {
           _isTouchingFront = true;
           // body.linearVelocity.x = 0;
         }
-        // print(
-        //     '1st if(SEN)\ncontact.fixtureA.body.userData = ${contact.fixtureA.body.userData}\ncontact.fixtureA == fixture = ${contact.fixtureA == fixture}\ncontact.fixtureA == footSensorFixture = ${contact.fixtureA == footSensorFixture}\ncontact.fixtureA == leftSensorFixture = ${contact.fixtureA == leftSensorFixture}\ncontact.fixtureA == rightSensorFixture = ${contact.fixtureA == rightSensorFixture}');
-      } else {
-        // print(
-        //     '1st else(NAS)\ncontact.fixtureA.body.userData = ${contact.fixtureA.body.userData}\ncontact.fixtureA == fixture = ${contact.fixtureA == fixture}\ncontact.fixtureA == footSensorFixture = ${contact.fixtureA == footSensorFixture}\ncontact.fixtureA == leftSensorFixture = ${contact.fixtureA == leftSensorFixture}\ncontact.fixtureA == rightSensorFixture = ${contact.fixtureA == rightSensorFixture}');
       }
       if (contact.fixtureB.isSensor) {
         if (contact.fixtureB == footSensorFixture) {
           _numGroundContacts += 1;
-          _extraJumps = extraJumpsValue;
+          _extraJumps = _extraJumpsValue;
         } else {
           _isTouchingFront = true;
           // body.linearVelocity.x = 0;
         }
-        // print(
-        //     '2nd if(SEN)\ncontact.fixtureB.body.userData = ${contact.fixtureB.body.userData}\ncontact.fixtureB == fixture = ${contact.fixtureB == fixture}\ncontact.fixtureB == footSensorFixture = ${contact.fixtureB == footSensorFixture}\ncontact.fixtureB == leftSensorFixture = ${contact.fixtureB == leftSensorFixture}\ncontact.fixtureB == rightSensorFixture = ${contact.fixtureB == rightSensorFixture}');
-      } else {
-        // print(
-        //     '2nd else(NAS)\ncontact.fixtureB.body.userData = ${contact.fixtureB.body.userData}\ncontact.fixtureB == fixture = ${contact.fixtureB == fixture}\ncontact.fixtureB == footSensorFixture = ${contact.fixtureB == footSensorFixture}\ncontact.fixtureB == leftSensorFixture = ${contact.fixtureB == leftSensorFixture}\ncontact.fixtureB == rightSensorFixture = ${contact.fixtureB == rightSensorFixture}');
       }
     }
 
@@ -311,7 +306,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     final shape = PolygonShape()
       ..setAsBox(
-        (_size.x / 2 - 12) / zoomLevel,
+        (_size.x / 2 - 10) / zoomLevel,
         (_size.x / 2 - 5.7) / zoomLevel,
         Vector2(0, 3.3) / zoomLevel,
         0,
@@ -321,10 +316,6 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       ..density = 15
       ..friction = 0
       ..restitution = 0;
-
-    // final footSensor = CircleShape()
-    //   ..position.setFrom(Vector2(0, shape.vertices[2][1]))
-    //   ..radius = shape.vertices[2][0] + 0.75 / zoomLevel;
 
     final footSensor = PolygonShape()
       ..setAsBox(
@@ -336,19 +327,11 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     final footSensorFixtureDef = FixtureDef(footSensor)..isSensor = true;
 
-    // final leftSensor = PolygonShape()
-    //   ..setAsBox(
-    //     shape.vertices[2][0] * .1,
-    //     (shape.vertices[2][1] - shape.centroid.y) * .75,
-    //     Vector2(-shape.vertices[2][0], shape.centroid.y),
-    //     0,
-    //   );
-
     final leftSensor = PolygonShape()
       ..setAsBox(
         shape.vertices[2][0] * .3,
         (shape.vertices[2][1] - shape.centroid.y) * .85,
-        Vector2(-(shape.vertices[2][0] * 1.4), shape.centroid.y),
+        Vector2(-(shape.vertices[2][0] * .7), shape.centroid.y),
         0,
       );
 
