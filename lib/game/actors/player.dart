@@ -29,13 +29,16 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   double _direction = 0;
   final double _jumpForce = -3.75;
   final double _changeDirForce = 2.5;
+  final double _wallBounceForce = .3;
   int _numGroundContacts = 0;
   bool _changeDir = false;
   bool _acceleratingTurn = false;
   bool _isTouchingFront = false;
-  bool _wallJumping = false;
+  bool _isWallJumping = false;
   bool _leftSensorOn = false;
   bool _rightSensorOn = false;
+  bool _stopped = false;
+  bool _justLandedFromWallJump = false;
   final int _jumpTimeoutValue = 5;
   late int _jumpTimeout = _jumpTimeoutValue;
   // fixtures are only needed for testing
@@ -105,18 +108,37 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     return super.onLoad();
   }
 
+  // void jump() {
+  //   final velocity = body.linearVelocity.clone();
+  //   // jump from the ground
+  //   if (_numGroundContacts > 0) {
+  //     double x = velocity.x;
+  //     if (_isTouchingFront) {
+  //       int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
+  //       x = wallBounceDir * _wallBounceForce;
+  //       _isWallJumping = true;
+  //     }
+  //     if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
+  //       body.linearVelocity = Vector2(x, _jumpForce);
+  //     }
+  //     // jump in the air
+  //   } else if (_extraJumps > 0) {
+  //     body.linearVelocity = Vector2(velocity.x, _jumpForce);
+  //     _extraJumps -= 1;
+  //   }
+  // }
+
   void jump() {
     final velocity = body.linearVelocity.clone();
     // jump from the ground
     if (_numGroundContacts > 0) {
-      double x = velocity.x;
-      if (_isTouchingFront) {
-        int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
-        x = wallBounceDir * 1;
-        _wallJumping = true;
-      }
       if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
-        body.linearVelocity = Vector2(x, _jumpForce);
+        body.linearVelocity = Vector2(velocity.x, _jumpForce);
+      }
+      if (_isTouchingFront && _numGroundContacts != 2) {
+        int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
+        _isWallJumping = true;
+        body.applyLinearImpulse(Vector2(wallBounceDir * _wallBounceForce, 0));
       }
       // jump in the air
     } else if (_extraJumps > 0) {
@@ -136,6 +158,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     // print(_numGroundContacts);
     // print(velocity.x);
     // print(_wallJumping);
+    // print(_jumpTimeout);
 
     // player is in the air
     if (_numGroundContacts == 0 ||
@@ -150,10 +173,18 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           }
           _playerComponent.current = PlayerState.wallJump;
         } else {
+          // if (_isWallJumping && !_stopped) {
+          //   body.linearVelocity.x = 0;
+          //   _stopped = true;
+          // }
           _playerComponent.current = PlayerState.fall;
         }
         // upward velocity
       } else if (velocity.y < 0) {
+        if (_isWallJumping && !_stopped && _jumpTimeout < -8) {
+          body.linearVelocity.x = 0;
+          _stopped = true;
+        }
         if (_extraJumps != 0) {
           _playerComponent.current = PlayerState.jump;
           // using different animation for the last jump
@@ -182,7 +213,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       // velocity is slower or equal to the _maxSpeed
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
         // when you are not making a turn
-        if (!_changeDir && !_acceleratingTurn && !_wallJumping) {
+        if (!_changeDir && !_acceleratingTurn && !_isWallJumping) {
           // print('weak');
           if (!(velocity.x * velocity.x == _maxSpeed2) &&
               _numGroundContacts < 3) {
@@ -255,7 +286,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     }
     if (!keysPressed.contains(LogicalKeyboardKey.arrowLeft) &&
         !keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
-        _playerComponent.current != PlayerState.wallJump) {
+        _playerComponent.current != PlayerState.wallJump &&
+        !_isWallJumping) {
       body.linearVelocity.x = 0;
     }
 
@@ -269,7 +301,12 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         if (contact.fixtureA == footSensorFixture) {
           _numGroundContacts += 1;
           _extraJumps = _extraJumpsValue;
-          _wallJumping = false;
+          _isWallJumping = false;
+          _stopped = false;
+          if (_justLandedFromWallJump && _direction == 0) {
+            body.linearVelocity.x = 0;
+            _justLandedFromWallJump = false;
+          }
         } else {
           _isTouchingFront = true;
           if (contact.fixtureA == leftSensorFixture) {
@@ -283,7 +320,12 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         if (contact.fixtureB == footSensorFixture) {
           _numGroundContacts += 1;
           _extraJumps = _extraJumpsValue;
-          _wallJumping = false;
+          _isWallJumping = false;
+          _stopped = false;
+          if (_justLandedFromWallJump && _direction == 0) {
+            body.linearVelocity.x = 0;
+            _justLandedFromWallJump = false;
+          }
         } else {
           _isTouchingFront = true;
           if (contact.fixtureB == leftSensorFixture) {
@@ -305,6 +347,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         if (contact.fixtureA == footSensorFixture) {
           _numGroundContacts -= 1;
         } else {
+          _justLandedFromWallJump = true;
           _isTouchingFront = true;
           if (contact.fixtureA == leftSensorFixture) {
             _leftSensorOn = false;
@@ -317,6 +360,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         if (contact.fixtureB == footSensorFixture) {
           _numGroundContacts -= 1;
         } else {
+          _justLandedFromWallJump = true;
           _isTouchingFront = false;
           if (contact.fixtureB == leftSensorFixture) {
             _leftSensorOn = false;
