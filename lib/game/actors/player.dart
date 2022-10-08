@@ -4,8 +4,8 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:flutter/services.dart';
+import 'package:squish_them_all/game/actors/wall.dart';
 // import 'package:flame/input.dart';
-// import 'package:squish_them_all/game/actors/wall.dart';
 // import 'package:flame/components.dart';
 // import 'package:flame_forge2d/flame_forge2d.dart';
 // import 'package:flutter/services.dart';
@@ -31,15 +31,16 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   final double _changeDirForce = 2.5;
   final double _wallBounceForce = .3;
   int _numGroundContacts = 0;
-  bool _changeDir = false;
+  bool _isChangingDir = false;
   bool _acceleratingTurn = false;
   bool _isTouchingFront = false;
   bool _isWallJumping = false;
   bool _leftSensorOn = false;
   bool _rightSensorOn = false;
-  bool _stopped = false;
-  bool _justLandedFromWallJump = false;
+  bool _stoppedBouncing = false;
+  bool _wallJumpStarted = false;
   final int _jumpTimeoutValue = 5;
+  final int _stopTimeoutValue = -8;
   late int _jumpTimeout = _jumpTimeoutValue;
   // fixtures are only needed for testing
   late Fixture fixture;
@@ -108,26 +109,6 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     return super.onLoad();
   }
 
-  // void jump() {
-  //   final velocity = body.linearVelocity.clone();
-  //   // jump from the ground
-  //   if (_numGroundContacts > 0) {
-  //     double x = velocity.x;
-  //     if (_isTouchingFront) {
-  //       int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
-  //       x = wallBounceDir * _wallBounceForce;
-  //       _isWallJumping = true;
-  //     }
-  //     if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
-  //       body.linearVelocity = Vector2(x, _jumpForce);
-  //     }
-  //     // jump in the air
-  //   } else if (_extraJumps > 0) {
-  //     body.linearVelocity = Vector2(velocity.x, _jumpForce);
-  //     _extraJumps -= 1;
-  //   }
-  // }
-
   void jump() {
     final velocity = body.linearVelocity.clone();
     // jump from the ground
@@ -135,7 +116,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
         body.linearVelocity = Vector2(velocity.x, _jumpForce);
       }
-      if (_isTouchingFront && _numGroundContacts != 2) {
+      if (_playerComponent.current == PlayerState.wallJump) {
         int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
         _isWallJumping = true;
         body.applyLinearImpulse(Vector2(wallBounceDir * _wallBounceForce, 0));
@@ -165,7 +146,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         (_numGroundContacts == 1 && _isTouchingFront)) {
       // downward velocity
       if (velocity.y > 0) {
-        if (_isTouchingFront && !_changeDir) {
+        if (_isTouchingFront && !_isChangingDir) {
           body.linearVelocity = Vector2(velocity.x, .5);
           if ((_leftSensorOn && !_playerComponent.isFlippedHorizontally) ||
               (_rightSensorOn && _playerComponent.isFlippedHorizontally)) {
@@ -173,17 +154,15 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           }
           _playerComponent.current = PlayerState.wallJump;
         } else {
-          // if (_isWallJumping && !_stopped) {
-          //   body.linearVelocity.x = 0;
-          //   _stopped = true;
-          // }
           _playerComponent.current = PlayerState.fall;
         }
         // upward velocity
       } else if (velocity.y < 0) {
-        if (_isWallJumping && !_stopped && _jumpTimeout < -8) {
+        if (_isWallJumping &&
+            !_stoppedBouncing &&
+            _jumpTimeout < _stopTimeoutValue) {
           body.linearVelocity.x = 0;
-          _stopped = true;
+          _stoppedBouncing = true;
         }
         if (_extraJumps != 0) {
           _playerComponent.current = PlayerState.jump;
@@ -213,7 +192,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       // velocity is slower or equal to the _maxSpeed
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
         // when you are not making a turn
-        if (!_changeDir && !_acceleratingTurn && !_isWallJumping) {
+        if (!_isChangingDir && !_acceleratingTurn && !_isWallJumping) {
           // print('weak');
           if (!(velocity.x * velocity.x == _maxSpeed2) &&
               _numGroundContacts < 3) {
@@ -229,7 +208,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
             _acceleratingTurn = true;
             // once the velocity surpasses half of the max speed, apply normal force
           } else {
-            _changeDir = false;
+            _isChangingDir = false;
           }
         }
       }
@@ -255,13 +234,13 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     if (_direction < 0) {
       if (!_playerComponent.isFlippedHorizontally &&
           _playerComponent.current != PlayerState.wallJump) {
-        _changeDir = true;
+        _isChangingDir = true;
         _playerComponent.flipHorizontally();
       }
     } else if (_direction > 0) {
       if (_playerComponent.isFlippedHorizontally &&
           _playerComponent.current != PlayerState.wallJump) {
-        _changeDir = true;
+        _isChangingDir = true;
         _playerComponent.flipHorizontally();
       }
     }
@@ -302,10 +281,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           _numGroundContacts += 1;
           _extraJumps = _extraJumpsValue;
           _isWallJumping = false;
-          _stopped = false;
-          if (_justLandedFromWallJump && _direction == 0) {
+          _stoppedBouncing = false;
+          if (_wallJumpStarted && _direction == 0) {
             body.linearVelocity.x = 0;
-            _justLandedFromWallJump = false;
+            _wallJumpStarted = false;
           }
         } else {
           _isTouchingFront = true;
@@ -321,10 +300,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           _numGroundContacts += 1;
           _extraJumps = _extraJumpsValue;
           _isWallJumping = false;
-          _stopped = false;
-          if (_justLandedFromWallJump && _direction == 0) {
+          _stoppedBouncing = false;
+          if (_wallJumpStarted && _direction == 0) {
             body.linearVelocity.x = 0;
-            _justLandedFromWallJump = false;
+            _wallJumpStarted = false;
           }
         } else {
           _isTouchingFront = true;
@@ -347,7 +326,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         if (contact.fixtureA == footSensorFixture) {
           _numGroundContacts -= 1;
         } else {
-          _justLandedFromWallJump = true;
+          if (_isWallJumping) {
+            _playerComponent.flipHorizontally();
+          }
+          _wallJumpStarted = true;
           _isTouchingFront = true;
           if (contact.fixtureA == leftSensorFixture) {
             _leftSensorOn = false;
@@ -360,7 +342,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         if (contact.fixtureB == footSensorFixture) {
           _numGroundContacts -= 1;
         } else {
-          _justLandedFromWallJump = true;
+          if (_isWallJumping) {
+            _playerComponent.flipHorizontally();
+          }
+          _wallJumpStarted = true;
           _isTouchingFront = false;
           if (contact.fixtureB == leftSensorFixture) {
             _leftSensorOn = false;
