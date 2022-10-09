@@ -40,7 +40,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   bool _stoppedBouncing = false;
   bool _wallJumpStarted = false;
   final int _jumpTimeoutValue = 5;
-  final int _stopTimeoutValue = -8;
+  final int _stopTimeoutValue = -2;
   late int _jumpTimeout = _jumpTimeoutValue;
   // fixtures are only needed for testing
   late Fixture fixture;
@@ -136,9 +136,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final velocity = body.linearVelocity.clone();
     // final position = body.position;
 
-    // print(_numGroundContacts);
+    print(_isWallJumping);
     // print(velocity.x);
-    // print(_wallJumping);
     // print(_jumpTimeout);
 
     // player is in the air
@@ -330,7 +329,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
             _playerComponent.flipHorizontally();
           }
           _wallJumpStarted = true;
-          _isTouchingFront = true;
+          _isTouchingFront = false;
           if (contact.fixtureA == leftSensorFixture) {
             _leftSensorOn = false;
           } else if (contact.fixtureA == rightSensorFixture) {

@@ -8,7 +8,7 @@ import 'package:tiled/tiled.dart';
 
 import 'package:squish_them_all/game/actors/angry_pig.dart';
 import 'package:squish_them_all/game/actors/apple.dart';
-import 'package:squish_them_all/game/actors/end.dart';
+import 'package:squish_them_all/game/actors/portal.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:squish_them_all/game/actors/player.dart';
 import 'package:squish_them_all/game/actors/bananas.dart';
@@ -89,13 +89,15 @@ class Level extends Component with HasGameRef<SquishThemAll> {
     if (spawnPointsLayer != null) {
       // Iterate through all the objects from the layer.
       for (final spawnPoint in spawnPointsLayer.objects) {
+        final position = Vector2(
+          (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
+          (spawnPoint.y + spawnPoint.width / 2 - spawnPoint.height) / zoomLevel,
+        );
+
         switch (spawnPoint.type) {
           case 'Player':
             gameRef.player = Player(
-              Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
-                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
-              ),
+              position,
             );
             await add(gameRef.player);
             gameRef.camera.followBodyComponent(
@@ -105,46 +107,31 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             break;
           case 'Apple':
             final apple = Apple(
-              Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
-                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
-              ),
+              position,
             );
             add(apple);
             break;
           case 'Bananas':
             final bananas = Bananas(
-              Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
-                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
-              ),
+              position,
             );
             add(bananas);
             break;
           case 'Angry Pig':
             final angryPig = AngryPig(
-              Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
-                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
-              ),
+              position,
             );
             add(angryPig);
             break;
-          case 'End':
-            final end = End(
-              Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
-                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
-              ),
-            );
-            add(end);
+          case 'Portal':
+            final portal = Portal(position, onPlayerEnter: () {
+              gameRef.loadLevel(spawnPoint.properties.first.value);
+            });
+            add(portal);
             break;
           case 'Melon':
             final melon = Melon(
-              Vector2(
-                (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,
-                (spawnPoint.y + spawnPoint.width / 2) / zoomLevel,
-              ),
+              position,
             );
             add(melon);
             break;

@@ -34,7 +34,7 @@ class SquishThemAll extends Forge2DGame
     // Basically this viewport makes sure the ratio between width and height is always the same in your game, no matter the platform.
     camera.viewport = FixedResolutionViewport(screenSize);
 
-    loadLevel('Level1 Temp.tmx');
+    loadLevel('Level1.tmx');
 
     return super.onLoad();
   }
