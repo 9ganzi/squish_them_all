@@ -3,32 +3,32 @@ import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/player.dart';
 
-class Melon extends BodyComponent with ContactCallbacks {
+class Fruit extends BodyComponent with ContactCallbacks {
   final _size = Vector2(32, 32);
   bool isTaken = false;
 
-  late SpriteAnimationComponent _melonComponent;
-
   final Vector2 position;
+  String sprite;
+  late SpriteAnimationComponent _fruitComponent;
 
-  Melon(this.position, {super.renderBody = false});
+  Fruit(this.position, this.sprite, {super.renderBody = false});
 
   @override
   Future<void> onLoad() async {
-    await gameRef.images.load('Fruits - Melon.png');
+    await gameRef.images.load(sprite);
 
     await super.onLoad();
 
-    _melonComponent = SpriteAnimationComponent(
+    _fruitComponent = SpriteAnimationComponent(
       animation: SpriteSheet(
-        image: gameRef.images.fromCache('Fruits - Melon.png'),
+        image: gameRef.images.fromCache(sprite),
         srcSize: _size,
       ).createAnimation(row: 0, stepTime: 0.05),
       anchor: Anchor.center,
       size: _size / 100,
     );
 
-    add(_melonComponent);
+    add(_fruitComponent);
   }
 
   @override

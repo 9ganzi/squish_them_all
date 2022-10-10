@@ -4,7 +4,7 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:flutter/services.dart';
-import 'package:squish_them_all/game/actors/wall.dart';
+// import 'package:squish_them_all/game/actors/wall.dart';
 // import 'package:flame/input.dart';
 // import 'package:flame/components.dart';
 // import 'package:flame_forge2d/flame_forge2d.dart';
@@ -16,7 +16,7 @@ enum PlayerState {
   run,
   jump,
   doubleJump,
-  wallJump,
+  wallSlide,
   fall,
   hit,
 }
@@ -30,6 +30,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   final double _jumpForce = -3.75;
   final double _changeDirForce = 2.5;
   final double _wallBounceForce = .3;
+  late double _wallSlidePosition;
   int _numGroundContacts = 0;
   bool _isChangingDir = false;
   bool _acceleratingTurn = false;
@@ -40,7 +41,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   bool _stoppedBouncing = false;
   bool _wallJumpStarted = false;
   final int _jumpTimeoutValue = 5;
-  final int _stopTimeoutValue = -2;
+  final double _stopBouncingOffset = .08;
   late int _jumpTimeout = _jumpTimeoutValue;
   // fixtures are only needed for testing
   late Fixture fixture;
@@ -61,7 +62,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         'Pink Man - Run (32x32).png',
         'Pink Man - Jump (32x32).png',
         'Pink Man - Double Jump (32x32).png',
-        'Pink Man - Wall Jump (32x32).png',
+        'Pink Man - Wall Slide (32x32).png',
         'Pink Man - Fall (32x32).png',
         'Pink Man - Hit (32x32).png',
       ],
@@ -84,8 +85,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         image: gameRef.images.fromCache('Pink Man - Double Jump (32x32).png'),
         srcSize: _size,
       ).createAnimation(row: 0, stepTime: .05),
-      PlayerState.wallJump: SpriteSheet(
-        image: gameRef.images.fromCache('Pink Man - Wall Jump (32x32).png'),
+      PlayerState.wallSlide: SpriteSheet(
+        image: gameRef.images.fromCache('Pink Man - Wall Slide (32x32).png'),
         srcSize: _size,
       ).createAnimation(row: 0, stepTime: .05),
       PlayerState.fall: SpriteSheet(
@@ -116,7 +117,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
         body.linearVelocity = Vector2(velocity.x, _jumpForce);
       }
-      if (_playerComponent.current == PlayerState.wallJump) {
+      if (_playerComponent.current == PlayerState.wallSlide) {
         int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
         _isWallJumping = true;
         body.applyLinearImpulse(Vector2(wallBounceDir * _wallBounceForce, 0));
@@ -136,7 +137,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final velocity = body.linearVelocity.clone();
     // final position = body.position;
 
-    print(_isWallJumping);
+    // print(body.position.x);
+    // print(_isWallJumping);
     // print(velocity.x);
     // print(_jumpTimeout);
 
@@ -151,7 +153,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
               (_rightSensorOn && _playerComponent.isFlippedHorizontally)) {
             _playerComponent.flipHorizontally();
           }
-          _playerComponent.current = PlayerState.wallJump;
+          _playerComponent.current = PlayerState.wallSlide;
+          _wallSlidePosition = body.position.x;
         } else {
           _playerComponent.current = PlayerState.fall;
         }
@@ -159,7 +162,9 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       } else if (velocity.y < 0) {
         if (_isWallJumping &&
             !_stoppedBouncing &&
-            _jumpTimeout < _stopTimeoutValue) {
+            _direction == 0 &&
+            (_wallSlidePosition - body.position.x).abs() >
+                _stopBouncingOffset) {
           body.linearVelocity.x = 0;
           _stoppedBouncing = true;
         }
@@ -232,13 +237,13 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     // flip animations according to player directions
     if (_direction < 0) {
       if (!_playerComponent.isFlippedHorizontally &&
-          _playerComponent.current != PlayerState.wallJump) {
+          _playerComponent.current != PlayerState.wallSlide) {
         _isChangingDir = true;
         _playerComponent.flipHorizontally();
       }
     } else if (_direction > 0) {
       if (_playerComponent.isFlippedHorizontally &&
-          _playerComponent.current != PlayerState.wallJump) {
+          _playerComponent.current != PlayerState.wallSlide) {
         _isChangingDir = true;
         _playerComponent.flipHorizontally();
       }
@@ -264,8 +269,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     }
     if (!keysPressed.contains(LogicalKeyboardKey.arrowLeft) &&
         !keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
-        _playerComponent.current != PlayerState.wallJump &&
-        !_isWallJumping) {
+        _playerComponent.current != PlayerState.wallSlide) {
       body.linearVelocity.x = 0;
     }
 

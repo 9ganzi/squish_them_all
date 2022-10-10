@@ -7,12 +7,10 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:tiled/tiled.dart';
 
 import 'package:squish_them_all/game/actors/angry_pig.dart';
-import 'package:squish_them_all/game/actors/apple.dart';
 import 'package:squish_them_all/game/actors/portal.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:squish_them_all/game/actors/player.dart';
-import 'package:squish_them_all/game/actors/bananas.dart';
-import 'package:squish_them_all/game/actors/melon.dart';
+import 'package:squish_them_all/game/actors/fruit.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
 import 'package:squish_them_all/game/actors/wall.dart';
 
@@ -106,15 +104,11 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             );
             break;
           case 'Apple':
-            final apple = Apple(
-              position,
-            );
+            final apple = Fruit(position, 'Fruits - Apple.png');
             add(apple);
             break;
           case 'Bananas':
-            final bananas = Bananas(
-              position,
-            );
+            final bananas = Fruit(position, 'Fruits - Bananas.png');
             add(bananas);
             break;
           case 'Angry Pig':
@@ -130,9 +124,7 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             add(portal);
             break;
           case 'Melon':
-            final melon = Melon(
-              position,
-            );
+            final melon = Fruit(position, 'Fruits - Melon.png');
             add(melon);
             break;
         }
