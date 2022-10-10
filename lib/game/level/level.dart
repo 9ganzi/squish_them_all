@@ -94,9 +94,7 @@ class Level extends Component with HasGameRef<SquishThemAll> {
 
         switch (spawnPoint.type) {
           case 'Player':
-            gameRef.player = Player(
-              position,
-            );
+            gameRef.player = Player(position);
             await add(gameRef.player);
             gameRef.camera.followBodyComponent(
               gameRef.player,
@@ -112,9 +110,7 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             add(bananas);
             break;
           case 'Angry Pig':
-            final angryPig = AngryPig(
-              position,
-            );
+            final angryPig = AngryPig(position);
             add(angryPig);
             break;
           case 'Portal':

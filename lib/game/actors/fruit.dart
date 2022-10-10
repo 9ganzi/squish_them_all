@@ -1,49 +1,56 @@
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:squish_them_all/game/game.dart';
 import 'package:squish_them_all/game/actors/player.dart';
+
+enum FruitState {
+  idle,
+  collected,
+}
 
 class Fruit extends BodyComponent with ContactCallbacks {
   final _size = Vector2(32, 32);
-  bool isTaken = false;
-
   final Vector2 position;
   String sprite;
-  late SpriteAnimationComponent _fruitComponent;
+  late SpriteAnimationGroupComponent _fruitComponent;
 
   Fruit(this.position, this.sprite, {super.renderBody = false});
 
   @override
   Future<void> onLoad() async {
-    await gameRef.images.load(sprite);
+    await gameRef.images.loadAll([sprite, "Checkpoints - Collected.png"]);
 
     await super.onLoad();
 
-    _fruitComponent = SpriteAnimationComponent(
-      animation: SpriteSheet(
+    final animations = {
+      FruitState.idle: SpriteSheet(
         image: gameRef.images.fromCache(sprite),
         srcSize: _size,
       ).createAnimation(row: 0, stepTime: 0.05),
+      FruitState.collected: SpriteSheet(
+        image: gameRef.images.fromCache("Checkpoints - Collected.png"),
+        srcSize: _size,
+      ).createAnimation(row: 0, stepTime: 0.05)
+        ..onComplete = () {
+          world.destroyBody(body);
+          removeFromParent();
+        }
+        ..loop = false,
+    };
+
+    _fruitComponent = SpriteAnimationGroupComponent<FruitState>(
       anchor: Anchor.center,
-      size: _size / 100,
+      size: _size / zoomLevel,
+      animations: animations,
+      current: FruitState.idle,
     );
 
     add(_fruitComponent);
   }
 
-  @override
-  void update(double dt) {
-    super.update(dt);
-
-    if (isTaken) {
-      world.destroyBody(body);
-      // // Causes error!
-      // gameRef.remove(this);
-    }
-  }
-
   void hit() {
-    isTaken = true;
+    _fruitComponent.current = FruitState.collected;
   }
 
   @override
@@ -56,7 +63,7 @@ class Fruit extends BodyComponent with ContactCallbacks {
     );
 
     final shape = CircleShape()..radius = .05;
-    final fixtureDef = FixtureDef(shape);
+    final fixtureDef = FixtureDef(shape)..isSensor = true;
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 

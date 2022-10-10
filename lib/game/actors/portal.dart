@@ -11,7 +11,6 @@ enum PortalState {
 
 class Portal extends BodyComponent with ContactCallbacks {
   final _size = Vector2(64, 64);
-  bool _isTaken = false;
   final Vector2 position;
   late SpriteAnimationGroupComponent _portalComponent;
   Function? onPlayerEnter;
@@ -32,7 +31,13 @@ class Portal extends BodyComponent with ContactCallbacks {
       PortalState.disappear: SpriteSheet(
         image: gameRef.images.fromCache('Checkpoints - Portal.png'),
         srcSize: _size,
-      ).createAnimation(row: 2, stepTime: .1),
+      ).createAnimation(row: 2, stepTime: .1)
+        ..onComplete = () {
+          world.destroyBody(body);
+          removeFromParent();
+          onPlayerEnter?.call();
+        }
+        ..loop = false,
     };
 
     _portalComponent = SpriteAnimationGroupComponent<PortalState>(
@@ -45,21 +50,8 @@ class Portal extends BodyComponent with ContactCallbacks {
     add(_portalComponent);
   }
 
-  @override
-  void update(double dt) {
-    super.update(dt);
-
-    if (_isTaken) {
-      world.destroyBody(body);
-      onPlayerEnter?.call();
-      // _portalComponent.current = PortalState.disappear;
-      // // Causes error!
-      // gameRef.remove(this);
-    }
-  }
-
   void hit() {
-    _isTaken = true;
+    _portalComponent.current = PortalState.disappear;
   }
 
   @override
@@ -82,7 +74,8 @@ class Portal extends BodyComponent with ContactCallbacks {
     final fixtureDef = FixtureDef(shape)
       ..density = 15
       ..friction = 0
-      ..restitution = 0;
+      ..restitution = 0
+      ..isSensor = true;
 
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }

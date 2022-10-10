@@ -111,9 +111,11 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final velocity = body.linearVelocity.clone();
     // jump from the ground
     if (_numGroundContacts > 0) {
+      //  only jump when these conditions are met
       if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
         body.linearVelocity = Vector2(velocity.x, _jumpForce);
       }
+      // make the player bounce from the wall
       if (_playerComponent.current == PlayerState.wallSlide) {
         int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
         _isWallJumping = true;
@@ -141,7 +143,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     // player is in the air
     if (_numGroundContacts == 0 ||
         (_numGroundContacts == 1 && _isTouchingFront)) {
-      // downward velocity
+      // downward velocity (either falling or wall sliding)
       if (velocity.y > 0) {
         // if (_isTouchingFront && !_isAccelerating) {
         if (_isTouchingFront) {
@@ -157,6 +159,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         }
         // upward velocity
       } else if (velocity.y < 0) {
+        // stop the bouncing effect when the player is away from the wall by _stopBouncingDistance
         if (_isWallJumping &&
             _direction == 0 &&
             (_wallSlidePosition - body.position.x).abs() >
@@ -192,14 +195,14 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
         // when you are not making a turn
         if (!_isAccelerating && !_isWallJumping) {
-          print('weak');
+          // print('slow');
           if (!(velocity.x * velocity.x == _maxSpeed2) &&
               _numGroundContacts < 3) {
             body.applyForce(Vector2(_direction, 0));
           }
           //  when you are making a turn
         } else {
-          print('strong');
+          // print('fast');
           // apply greater force to make the turn faster
           body.applyForce(Vector2(_direction * _changeDirForce / wallStop, 0));
           // until the velocity reaches half of the max speed, apply greater force
