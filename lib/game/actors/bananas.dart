@@ -1,9 +1,11 @@
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/player.dart';
+import 'package:squish_them_all/game/game.dart';
 
-class Bananas extends BodyComponent with ContactCallbacks {
+class Bananas extends BodyComponent<SquishThemAll> with ContactCallbacks {
   final _size = Vector2(32, 32);
   bool isTaken = false;
 
@@ -64,6 +66,15 @@ class Bananas extends BodyComponent with ContactCallbacks {
   void beginContact(Object other, Contact contact) {
     if (other is Player) {
       hit();
+      add(
+        OpacityEffect.fadeOut(
+          LinearEffectController(0.3),
+        )..onFinishCallback = () {
+            add(RemoveEffect());
+          },
+      );
+      gameRef.playerData.score.value += 1;
     }
+    super.beginContact(other, contact);
   }
 }
