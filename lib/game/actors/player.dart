@@ -19,9 +19,11 @@ enum PlayerState {
   wallSlide,
   fall,
   hit,
+  disappear,
 }
 
-class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
+class Player extends BodyComponent<SquishThemAll>
+    with KeyboardHandler, ContactCallbacks {
   final _size = Vector2(32, 32);
   final Vector2 _position;
   static const double _maxSpeed = 1.25;
@@ -47,7 +49,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   late Fixture rightSensorFixture;
   final int _extraJumpsValue = 1;
   late int _extraJumps = _extraJumpsValue;
-  late SpriteAnimationGroupComponent _playerComponent;
+  late SpriteAnimationGroupComponent playerComponent;
 
   Player(this._position, {super.renderBody = false});
 
@@ -62,6 +64,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         'Pink Man - Wall Slide (32x32).png',
         'Pink Man - Fall (32x32).png',
         'Pink Man - Hit (32x32).png',
+        'Main Characters - Disappearing (96x96).png',
       ],
     );
 
@@ -94,16 +97,22 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         image: gameRef.images.fromCache('Pink Man - Hit (32x32).png'),
         srcSize: _size,
       ).createAnimation(row: 0, stepTime: .05),
+      PlayerState.disappear: SpriteSheet(
+        image: gameRef.images
+            .fromCache('Main Characters - Disappearing (96x96).png'),
+        srcSize: _size * 3,
+      ).createAnimation(row: 0, stepTime: .8 / 7)
+        ..loop = false,
     };
 
-    _playerComponent = SpriteAnimationGroupComponent<PlayerState>(
+    playerComponent = SpriteAnimationGroupComponent<PlayerState>(
       anchor: Anchor.center,
       size: _size / zoomLevel,
       animations: animations,
       current: PlayerState.idle,
     );
 
-    add(_playerComponent);
+    add(playerComponent);
     return super.onLoad();
   }
 
@@ -112,12 +121,12 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     // jump from the ground
     if (_numGroundContacts > 0) {
       //  only jump when these conditions are met
-      if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
+      if (!(playerComponent.current == PlayerState.jump && _isTouchingFront)) {
         body.linearVelocity = Vector2(velocity.x, _jumpForce);
       }
       // make the player bounce from the wall
-      if (_playerComponent.current == PlayerState.wallSlide) {
-        int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
+      if (playerComponent.current == PlayerState.wallSlide) {
+        int wallBounceDir = playerComponent.isFlippedHorizontally ? 1 : -1;
         _isWallJumping = true;
         body.applyLinearImpulse(Vector2(wallBounceDir * _wallBounceForce, 0));
       }
@@ -132,7 +141,14 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void update(double dt) {
     super.update(dt);
 
+    if (playerComponent.current == PlayerState.disappear) {
+      body.linearVelocity = Vector2.zero();
+      body.gravityOverride = Vector2.zero();
+      return;
+    }
+
     _jumpTimeout -= 1;
+
     final velocity = body.linearVelocity.clone();
     // final position = body.position;
 
@@ -148,14 +164,14 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
         // if (_isTouchingFront && !_isAccelerating) {
         if (_isTouchingFront) {
           body.linearVelocity = Vector2(velocity.x, .5);
-          if ((_leftSensorOn && !_playerComponent.isFlippedHorizontally) ||
-              (_rightSensorOn && _playerComponent.isFlippedHorizontally)) {
-            _playerComponent.flipHorizontally();
+          if ((_leftSensorOn && !playerComponent.isFlippedHorizontally) ||
+              (_rightSensorOn && playerComponent.isFlippedHorizontally)) {
+            playerComponent.flipHorizontally();
           }
-          _playerComponent.current = PlayerState.wallSlide;
+          playerComponent.current = PlayerState.wallSlide;
           _wallSlidePosition = body.position.x;
         } else {
-          _playerComponent.current = PlayerState.fall;
+          playerComponent.current = PlayerState.fall;
         }
         // upward velocity
       } else if (velocity.y < 0) {
@@ -167,19 +183,19 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           body.linearVelocity.x = 0;
         }
         if (_extraJumps != 0) {
-          _playerComponent.current = PlayerState.jump;
+          playerComponent.current = PlayerState.jump;
           // using different animation for the last jump
         } else {
-          _playerComponent.current = PlayerState.doubleJump;
+          playerComponent.current = PlayerState.doubleJump;
         }
       }
       // player is on the ground
     } else {
       // player is either running left or right
       if (velocity.x != 0 && !_isTouchingFront) {
-        _playerComponent.current = PlayerState.run;
+        playerComponent.current = PlayerState.run;
       } else {
-        _playerComponent.current = PlayerState.idle;
+        playerComponent.current = PlayerState.idle;
       }
     }
 
@@ -232,16 +248,16 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     // flip animations according to player directions
     if (_direction < 0) {
-      if (!_playerComponent.isFlippedHorizontally &&
-          _playerComponent.current != PlayerState.wallSlide) {
+      if (!playerComponent.isFlippedHorizontally &&
+          playerComponent.current != PlayerState.wallSlide) {
         _isAccelerating = true;
-        _playerComponent.flipHorizontally();
+        playerComponent.flipHorizontally();
       }
     } else if (_direction > 0) {
-      if (_playerComponent.isFlippedHorizontally &&
-          _playerComponent.current != PlayerState.wallSlide) {
+      if (playerComponent.isFlippedHorizontally &&
+          playerComponent.current != PlayerState.wallSlide) {
         _isAccelerating = true;
-        _playerComponent.flipHorizontally();
+        playerComponent.flipHorizontally();
       }
     }
   }
@@ -265,7 +281,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     }
     if (!keysPressed.contains(LogicalKeyboardKey.arrowLeft) &&
         !keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
-        _playerComponent.current != PlayerState.wallSlide) {
+        playerComponent.current != PlayerState.wallSlide) {
       body.linearVelocity.x = 0;
     }
 
@@ -316,7 +332,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           _numGroundContacts -= 1;
         } else {
           if (_isWallJumping) {
-            _playerComponent.flipHorizontally();
+            playerComponent.flipHorizontally();
           }
           _isTouchingFront = false;
           if (contact.fixtureA == leftSensorFixture) {
@@ -331,7 +347,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
           _numGroundContacts -= 1;
         } else {
           if (_isWallJumping) {
-            _playerComponent.flipHorizontally();
+            playerComponent.flipHorizontally();
           }
           _isTouchingFront = false;
           if (contact.fixtureB == leftSensorFixture) {

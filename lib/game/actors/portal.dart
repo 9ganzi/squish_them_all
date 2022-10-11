@@ -9,7 +9,7 @@ enum PortalState {
   disappear,
 }
 
-class Portal extends BodyComponent with ContactCallbacks {
+class Portal extends BodyComponent<SquishThemAll> with ContactCallbacks {
   final _size = Vector2(64, 64);
   final Vector2 position;
   late SpriteAnimationGroupComponent _portalComponent;
@@ -50,10 +50,6 @@ class Portal extends BodyComponent with ContactCallbacks {
     add(_portalComponent);
   }
 
-  void hit() {
-    _portalComponent.current = PortalState.disappear;
-  }
-
   @override
   Body createBody() {
     // debugMode = true;
@@ -83,7 +79,8 @@ class Portal extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Player) {
-      hit();
+      _portalComponent.current = PortalState.disappear;
+      gameRef.player.playerComponent.current = PlayerState.disappear;
     }
   }
 }

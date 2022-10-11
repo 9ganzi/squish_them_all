@@ -9,7 +9,7 @@ enum FruitState {
   collected,
 }
 
-class Fruit extends BodyComponent with ContactCallbacks {
+class Fruit extends BodyComponent<SquishThemAll> with ContactCallbacks {
   final _size = Vector2(32, 32);
   final Vector2 position;
   String sprite;
@@ -49,10 +49,6 @@ class Fruit extends BodyComponent with ContactCallbacks {
     add(_fruitComponent);
   }
 
-  void hit() {
-    _fruitComponent.current = FruitState.collected;
-  }
-
   @override
   Body createBody() {
     // debugMode = true;
@@ -70,7 +66,7 @@ class Fruit extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Player) {
-      hit();
+      _fruitComponent.current = FruitState.collected;
     }
   }
 }

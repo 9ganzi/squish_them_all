@@ -16,7 +16,7 @@ enum AngryPigState {
   hit2,
 }
 
-class AngryPig extends BodyComponent {
+class AngryPig extends BodyComponent<SquishThemAll> {
   final _size = Vector2(36, 30);
   final Vector2 _position;
   int accelerationX = 0;
