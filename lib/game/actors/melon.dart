@@ -73,7 +73,7 @@ class Melon extends BodyComponent<SquishThemAll> with ContactCallbacks {
             add(RemoveEffect());
           },
       );
-      gameRef.playerData.score.value += 1;
+      gameRef.playerData.score.value += 10;
     }
     super.beginContact(other, contact);
   }
