@@ -36,13 +36,13 @@ class Hud extends Component with HasGameRef<SquishThemAll> {
     );
     add(playerSprite);
 
-    // gameRef.playerData.score.addListener(() {
-    //   scoreTextComponent.text = 'Score: ${gameRef.playerData.score.value}';
-    // });
+    gameRef.playerData.score.addListener(() {
+      scoreTextComponent.text = 'Score: ${gameRef.playerData.score.value}';
+    });
 
-    // gameRef.playerData.health.addListener(() {
-    //   healthTextComponent.text = 'Health: ${gameRef.playerData.health.value}';
-    // });
+    gameRef.playerData.health.addListener(() {
+      healthTextComponent.text = 'x${gameRef.playerData.health.value}';
+    });
 
     return super.onLoad();
   }

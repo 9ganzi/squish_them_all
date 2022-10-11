@@ -22,7 +22,7 @@ class SquishThemAll extends Forge2DGame
   late List<Image> spriteSheet;
   late Player player;
 
-  // final playerData = PlayerData();
+  final playerData = PlayerData();
 
   // Todo: change gravity back to 15
   SquishThemAll()
