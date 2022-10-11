@@ -162,7 +162,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       }
     }
 
-    // if the velocity surpasses the max speed, directly set the velocity to be max speed. This will prevent further applyForce, i.e. repetitive calculation
+    // if the velocity surpasses the max speed, directly set the velocity to be max speed. This will
+    // prevent further applyForce, i.e. repetitive calculation
     if (velocity.x * velocity.x > _maxSpeed2) {
       body.linearVelocity =
           Vector2(body.linearVelocity.x.sign * _maxSpeed, velocity.y);
@@ -170,6 +171,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     }
 
     // // When a player passes one side of the boundary, it will reappear on the other side of the boundary
+
     // if (position.x > worldSize.x) {
     //   position.x = 0;
     //   body.setTransform(position, 0);

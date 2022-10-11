@@ -1,9 +1,14 @@
+import 'dart:ui';
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/player.dart';
+import 'package:squish_them_all/game/game.dart';
+import 'package:flutter/animation.dart';
 
-class Apple extends BodyComponent with ContactCallbacks {
+class Apple extends BodyComponent<SquishThemAll> with ContactCallbacks {
   final _size = Vector2(32, 32);
   bool isTaken = false;
 
@@ -63,7 +68,17 @@ class Apple extends BodyComponent with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Player) {
+      // SequenceEffect can also be used here
       hit();
+      add(
+        OpacityEffect.fadeOut(
+          LinearEffectController(0.3),
+        )..onFinishCallback = () {
+            add(RemoveEffect());
+          },
+      );
+      gameRef.playerData.score.value += 1;
     }
+    super.beginContact(other, contact);
   }
 }

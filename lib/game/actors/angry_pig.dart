@@ -1,6 +1,9 @@
+// import 'dart:html';
+
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:squish_them_all/game/actors/player.dart';
 import 'package:squish_them_all/game/game.dart';
 // import 'package:flame/sprite.dart';
 // import 'package:flame/components.dart';
@@ -143,4 +146,15 @@ class AngryPig extends BodyComponent {
       ..createFixture(fixtureDef)
       ..setFixedRotation(true);
   }
+
+  // @override
+  // void onCollisionStart(
+  //     Set<Vector2> intersectionPoints, PositionComponent other) {
+  //   if (other is Player) {
+  //     other.hit();
+  //     if (gameRef.playerData.health.value > 0) {
+
+  //     }
+  //   }
+  // }
 }
