@@ -30,28 +30,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   final double _jumpForce = -3.75;
   final double _changeDirForce = 2.5;
   int _numGroundContacts = 0;
-<<<<<<< Updated upstream
   bool _changeDir = false;
   bool _acceleratingTurn = false;
   int extraJumpsValue = 1;
   late int _extraJumps = extraJumpsValue;
-=======
-  bool _isAccelerating = false;
-  bool _isTouchingFront = false;
-  bool _isWallJumping = false;
-  bool _leftSensorOn = false;
-  bool _rightSensorOn = false;
-  final double _stopBouncingDistance = .08;
-  final int _jumpTimeoutValue = 5;
-  late int _jumpTimeout = _jumpTimeoutValue;
-  // fixtures are used to identify which sensor is triggered
-  late Fixture fixture;
-  late Fixture footSensorFixture;
-  late Fixture leftSensorFixture;
-  late Fixture rightSensorFixture;
-  final int _extraJumpsValue = 1;
-  late int _extraJumps = _extraJumpsValue;
->>>>>>> Stashed changes
   late SpriteAnimationGroupComponent _playerComponent;
 
   Player(this._position, {super.renderBody = false});
@@ -116,21 +98,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     final velocity = body.linearVelocity.clone();
 
     if (_numGroundContacts > 0) {
-<<<<<<< Updated upstream
       body.linearVelocity = Vector2(velocity.x, _jumpForce);
-=======
-      //  only jump when these conditions are met
-      if (!(_playerComponent.current == PlayerState.jump && _isTouchingFront)) {
-        body.linearVelocity = Vector2(velocity.x, _jumpForce);
-      }
-      // make the player bounce from the wall
-      if (_playerComponent.current == PlayerState.wallSlide) {
-        int wallBounceDir = _playerComponent.isFlippedHorizontally ? 1 : -1;
-        _isWallJumping = true;
-        body.applyLinearImpulse(Vector2(wallBounceDir * _wallBounceForce, 0));
-      }
-      // jump in the air
->>>>>>> Stashed changes
     } else if (_extraJumps > 0) {
       body.linearVelocity = Vector2(velocity.x, _jumpForce);
       _extraJumps -= 1;
@@ -141,10 +109,6 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void update(double dt) {
     super.update(dt);
 
-<<<<<<< Updated upstream
-=======
-    _jumpTimeout -= 1;
->>>>>>> Stashed changes
     final velocity = body.linearVelocity.clone();
     final position = body.position;
 
@@ -154,22 +118,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     if (_numGroundContacts == 0) {
       // downward velocity
       if (velocity.y > 0) {
-<<<<<<< Updated upstream
         _playerComponent.current = PlayerState.fall;
-=======
-        // if (_isTouchingFront && !_isAccelerating) {
-        if (_isTouchingFront) {
-          body.linearVelocity = Vector2(velocity.x, .5);
-          if ((_leftSensorOn && !_playerComponent.isFlippedHorizontally) ||
-              (_rightSensorOn && _playerComponent.isFlippedHorizontally)) {
-            _playerComponent.flipHorizontally();
-          }
-          _playerComponent.current = PlayerState.wallSlide;
-          _wallSlidePosition = body.position.x;
-        } else {
-          _playerComponent.current = PlayerState.fall;
-        }
->>>>>>> Stashed changes
         // upward velocity
       } else if (velocity.y < 0) {
         if (_extraJumps != 0) {
@@ -181,13 +130,8 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       }
       // player is on the ground
     } else {
-<<<<<<< Updated upstream
       // player is either moving left or right
       if (velocity.x != 0) {
-=======
-      // player is either running left or right
-      if (velocity.x != 0 && !_isTouchingFront) {
->>>>>>> Stashed changes
         _playerComponent.current = PlayerState.run;
       } else {
         _playerComponent.current = PlayerState.idle;
@@ -238,7 +182,6 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
 
     // flip animations according to player directions
     if (_direction < 0) {
-<<<<<<< Updated upstream
       if (!_playerComponent.isFlippedHorizontally) {
         _changeDir = true;
         _playerComponent.flipHorizontally();
@@ -246,17 +189,6 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
     } else if (_direction > 0) {
       if (_playerComponent.isFlippedHorizontally) {
         _changeDir = true;
-=======
-      if (!_playerComponent.isFlippedHorizontally &&
-          _playerComponent.current != PlayerState.wallSlide) {
-        _isAccelerating = true;
-        _playerComponent.flipHorizontally();
-      }
-    } else if (_direction > 0) {
-      if (_playerComponent.isFlippedHorizontally &&
-          _playerComponent.current != PlayerState.wallSlide) {
-        _isAccelerating = true;
->>>>>>> Stashed changes
         _playerComponent.flipHorizontally();
       }
     }
@@ -279,12 +211,7 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       _direction += 1;
     }
     if (!keysPressed.contains(LogicalKeyboardKey.arrowLeft) &&
-<<<<<<< Updated upstream
         !keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
-=======
-        !keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
-        _playerComponent.current != PlayerState.wallSlide) {
->>>>>>> Stashed changes
       body.linearVelocity.x = 0;
     }
 
@@ -310,41 +237,10 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
   void endContact(Object other, Contact contact) {
     if (other is Ground) {
       if (contact.fixtureA.isSensor) {
-<<<<<<< Updated upstream
         _numGroundContacts -= 1;
       }
       if (contact.fixtureB.isSensor) {
         _numGroundContacts -= 1;
-=======
-        if (contact.fixtureA == footSensorFixture) {
-          _numGroundContacts -= 1;
-        } else {
-          if (_isWallJumping) {
-            _playerComponent.flipHorizontally();
-          }
-          _isTouchingFront = false;
-          if (contact.fixtureA == leftSensorFixture) {
-            _leftSensorOn = false;
-          } else if (contact.fixtureA == rightSensorFixture) {
-            _rightSensorOn = false;
-          }
-        }
-      }
-      if (contact.fixtureB.isSensor) {
-        if (contact.fixtureB == footSensorFixture) {
-          _numGroundContacts -= 1;
-        } else {
-          if (_isWallJumping) {
-            _playerComponent.flipHorizontally();
-          }
-          _isTouchingFront = false;
-          if (contact.fixtureB == leftSensorFixture) {
-            _leftSensorOn = false;
-          } else if (contact.fixtureB == rightSensorFixture) {
-            _rightSensorOn = false;
-          }
-        }
->>>>>>> Stashed changes
       }
     }
     super.endContact(other, contact);
