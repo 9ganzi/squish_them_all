@@ -30,7 +30,7 @@
   <object id="11" type="Apple" gid="426" x="160" y="160" width="32" height="32"/>
   <object id="62" type="Bananas" gid="444" x="128" y="160" width="32" height="32"/>
   <object id="63" type="Melon" gid="460" x="192" y="160" width="32" height="32"/>
-  <object id="67" type="Portal" gid="477" x="320" y="192" width="64" height="64">
+  <object id="67" type="Portal" gid="477" x="320" y="160" width="64" height="64">
    <properties>
     <property name="NextLevel" value="Level1.tmx"/>
    </properties>

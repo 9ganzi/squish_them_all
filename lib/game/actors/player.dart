@@ -120,15 +120,18 @@ class Player extends BodyComponent<SquishThemAll>
     final velocity = body.linearVelocity.clone();
     // jump from the ground
     if (_numGroundContacts > 0) {
-      //  only jump when these conditions are met
+      //  player can jump unless it is already jumping and touching the wall
       if (!(playerComponent.current == PlayerState.jump && _isTouchingFront)) {
-        body.linearVelocity = Vector2(velocity.x, _jumpForce);
-      }
-      // make the player bounce from the wall
-      if (playerComponent.current == PlayerState.wallSlide) {
-        int wallBounceDir = playerComponent.isFlippedHorizontally ? 1 : -1;
-        _isWallJumping = true;
-        body.applyLinearImpulse(Vector2(wallBounceDir * _wallBounceForce, 0));
+        // regular jump
+        if (playerComponent.current != PlayerState.wallSlide) {
+          body.linearVelocity = Vector2(velocity.x, _jumpForce);
+          // wall jump
+        } else {
+          int wallBounceDir = playerComponent.isFlippedHorizontally ? 1 : -1;
+          _isWallJumping = true;
+          body.applyLinearImpulse(
+              Vector2(wallBounceDir * _wallBounceForce, -1.7));
+        }
       }
       // jump in the air
     } else if (_extraJumps > 0) {
@@ -150,30 +153,30 @@ class Player extends BodyComponent<SquishThemAll>
     _jumpTimeout -= 1;
 
     final velocity = body.linearVelocity.clone();
-    // final position = body.position;
 
-    // print(_isWallJumping);
-    // print(velocity.x);
-    // print(_jumpTimeout);
+    // print(_direction);
 
-    // player is in the air
+    // player is in the air or wall sliding
     if (_numGroundContacts == 0 ||
         (_numGroundContacts == 1 && _isTouchingFront)) {
       // downward velocity (either falling or wall sliding)
       if (velocity.y > 0) {
-        // if (_isTouchingFront && !_isAccelerating) {
+        // player is wall sliding
         if (_isTouchingFront) {
           body.linearVelocity = Vector2(velocity.x, .5);
+          // to prevent applying wall sliding animations in the air
           if ((_leftSensorOn && !playerComponent.isFlippedHorizontally) ||
               (_rightSensorOn && playerComponent.isFlippedHorizontally)) {
             playerComponent.flipHorizontally();
           }
           playerComponent.current = PlayerState.wallSlide;
+          // record wall slide position to later stop wall bounce
           _wallSlidePosition = body.position.x;
+          // player is falling
         } else {
           playerComponent.current = PlayerState.fall;
         }
-        // upward velocity
+        // upward velocity (jumping)
       } else if (velocity.y < 0) {
         // stop the bouncing effect when the player is away from the wall by _stopBouncingDistance
         if (_isWallJumping &&
@@ -182,9 +185,10 @@ class Player extends BodyComponent<SquishThemAll>
                 _stopBouncingDistance) {
           body.linearVelocity.x = 0;
         }
+        // use regular jump animation
         if (_extraJumps != 0) {
           playerComponent.current = PlayerState.jump;
-          // using different animation for the last jump
+          // use double jump animation for the last jump
         } else {
           playerComponent.current = PlayerState.doubleJump;
         }
@@ -205,20 +209,15 @@ class Player extends BodyComponent<SquishThemAll>
       wallStop = _changeDirForce;
     }
 
-    // player is either moving left or right
+    // player is moving
     if (_direction != 0) {
       // velocity is slower or equal to the _maxSpeed
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
         // when you are not making a turn
         if (!_isAccelerating && !_isWallJumping) {
-          // print('slow');
-          if (!(velocity.x * velocity.x == _maxSpeed2) &&
-              _numGroundContacts < 3) {
-            body.applyForce(Vector2(_direction, 0));
-          }
-          //  when you are making a turn
+          body.applyForce(Vector2(_direction, 0));
+          // when you are making a turn
         } else {
-          // print('fast');
           // apply greater force to make the turn faster
           body.applyForce(Vector2(_direction * _changeDirForce / wallStop, 0));
           // until the velocity reaches half of the max speed, apply greater force
@@ -227,17 +226,17 @@ class Player extends BodyComponent<SquishThemAll>
             // once the velocity surpasses half of the max speed, apply normal force
           }
         }
+        // velocity is greater than _maxSpeed
+      } else {
+        // if the velocity surpasses the max speed, directly set the velocity to be max speed. This will prevent further applyForce, i.e. repetitive calculation
+        body.linearVelocity =
+            Vector2(body.linearVelocity.x.sign * _maxSpeed, velocity.y);
+        _isAccelerating = false;
       }
     }
 
-    // if the velocity surpasses the max speed, directly set the velocity to be max speed. This will prevent further applyForce, i.e. repetitive calculation
-    if (velocity.x * velocity.x > _maxSpeed2) {
-      body.linearVelocity =
-          Vector2(body.linearVelocity.x.sign * _maxSpeed, velocity.y);
-      _isAccelerating = false;
-    }
-
     // // When a player passes one side of the boundary, it will reappear on the other side of the boundary
+    // final position = body.position;
     // if (position.x > worldSize.x) {
     //   position.x = 0;
     //   body.setTransform(position, 0);
@@ -283,6 +282,7 @@ class Player extends BodyComponent<SquishThemAll>
         !keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
         playerComponent.current != PlayerState.wallSlide) {
       body.linearVelocity.x = 0;
+      _isAccelerating = false;
     }
 
     return false;
@@ -291,32 +291,26 @@ class Player extends BodyComponent<SquishThemAll>
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Ground) {
-      if (contact.fixtureA.isSensor) {
-        if (contact.fixtureA == footSensorFixture) {
+      if (contact.fixtureA.isSensor || contact.fixtureB.isSensor) {
+        if (contact.fixtureA == footSensorFixture ||
+            contact.fixtureB == footSensorFixture) {
           _numGroundContacts += 1;
           _extraJumps = _extraJumpsValue;
           _isWallJumping = false;
         } else {
           _isTouchingFront = true;
-          if (contact.fixtureA == leftSensorFixture) {
+          _isAccelerating = false;
+          if (contact.fixtureA == leftSensorFixture ||
+              contact.fixtureB == leftSensorFixture) {
             _leftSensorOn = true;
-          } else if (contact.fixtureA == rightSensorFixture) {
+          } else if (contact.fixtureA == rightSensorFixture ||
+              contact.fixtureB == rightSensorFixture) {
             _rightSensorOn = true;
           }
         }
-      }
-      if (contact.fixtureB.isSensor) {
-        if (contact.fixtureB == footSensorFixture) {
-          _numGroundContacts += 1;
-          _extraJumps = _extraJumpsValue;
-          _isWallJumping = false;
-        } else {
-          _isTouchingFront = true;
-          if (contact.fixtureB == leftSensorFixture) {
-            _leftSensorOn = true;
-          } else if (contact.fixtureB == rightSensorFixture) {
-            _rightSensorOn = true;
-          }
+      } else {
+        if (_numGroundContacts == 2) {
+          playerComponent.flipHorizontally();
         }
       }
     }
@@ -327,32 +321,20 @@ class Player extends BodyComponent<SquishThemAll>
   @override
   void endContact(Object other, Contact contact) {
     if (other is Ground) {
-      if (contact.fixtureA.isSensor) {
-        if (contact.fixtureA == footSensorFixture) {
+      if (contact.fixtureA.isSensor || contact.fixtureB.isSensor) {
+        if (contact.fixtureA == footSensorFixture ||
+            contact.fixtureB == footSensorFixture) {
           _numGroundContacts -= 1;
         } else {
           if (_isWallJumping) {
             playerComponent.flipHorizontally();
           }
           _isTouchingFront = false;
-          if (contact.fixtureA == leftSensorFixture) {
+          if (contact.fixtureA == leftSensorFixture ||
+              contact.fixtureB == leftSensorFixture) {
             _leftSensorOn = false;
-          } else if (contact.fixtureA == rightSensorFixture) {
-            _rightSensorOn = false;
-          }
-        }
-      }
-      if (contact.fixtureB.isSensor) {
-        if (contact.fixtureB == footSensorFixture) {
-          _numGroundContacts -= 1;
-        } else {
-          if (_isWallJumping) {
-            playerComponent.flipHorizontally();
-          }
-          _isTouchingFront = false;
-          if (contact.fixtureB == leftSensorFixture) {
-            _leftSensorOn = false;
-          } else if (contact.fixtureB == rightSensorFixture) {
+          } else if (contact.fixtureA == rightSensorFixture ||
+              contact.fixtureB == rightSensorFixture) {
             _rightSensorOn = false;
           }
         }

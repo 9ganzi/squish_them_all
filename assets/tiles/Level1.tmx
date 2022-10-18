@@ -29,7 +29,7 @@
   <object id="20" type="Angry Pig" gid="434" x="256" y="192" width="36" height="30"/>
   <object id="21" type="Bananas" gid="443" x="192" y="32" width="32" height="32"/>
   <object id="38" type="Apple" gid="405" x="160" y="32" width="32" height="32"/>
-  <object id="66" type="Portal" gid="702" x="320" y="192" width="64" height="64">
+  <object id="66" type="Portal" gid="702" x="320" y="160" width="64" height="64">
    <properties>
     <property name="NextLevel" value="Level2.tmx"/>
    </properties>
