@@ -37,6 +37,7 @@ class Player extends BodyComponent<SquishThemAll>
   bool _isAccelerating = false;
   bool _isTouchingFront = false;
   bool _isWallJumping = false;
+  bool offWall = false;
   bool _leftSensorOn = false;
   bool _rightSensorOn = false;
   final double _stopBouncingDistance = .08;
@@ -144,6 +145,10 @@ class Player extends BodyComponent<SquishThemAll>
   void update(double dt) {
     super.update(dt);
 
+    // if (offWall) {
+    //   print(offWall);
+    // }
+
     if (playerComponent.current == PlayerState.disappear) {
       body.linearVelocity = Vector2.zero();
       body.gravityOverride = Vector2.zero();
@@ -155,6 +160,7 @@ class Player extends BodyComponent<SquishThemAll>
     final velocity = body.linearVelocity.clone();
 
     // print(_direction);
+    // print(offWall);
 
     // player is in the air or wall sliding
     if (_numGroundContacts == 0 ||
@@ -209,13 +215,25 @@ class Player extends BodyComponent<SquishThemAll>
       wallStop = _changeDirForce;
     }
 
+    // when player is getting away from the wall
+    if (offWall) {
+      // make player stop
+      body.linearVelocity.x = 0;
+      offWall = false;
+      // make player face away from the wall
+      playerComponent.flipHorizontally();
+      // print('2');
+    }
+
     // player is moving
     if (_direction != 0) {
+      // print('3');
       // velocity is slower or equal to the _maxSpeed
       if (!(velocity.x * velocity.x > _maxSpeed2)) {
         // when you are not making a turn
         if (!_isAccelerating && !_isWallJumping) {
           body.applyForce(Vector2(_direction, 0));
+          // print('this is where it ended up');
           // when you are making a turn
         } else {
           // apply greater force to make the turn faster
@@ -272,17 +290,19 @@ class Player extends BodyComponent<SquishThemAll>
       }
     }
 
-    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
-      _direction -= 1;
-    }
-    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
-      _direction += 1;
-    }
     if (!keysPressed.contains(LogicalKeyboardKey.arrowLeft) &&
         !keysPressed.contains(LogicalKeyboardKey.arrowRight) &&
         playerComponent.current != PlayerState.wallSlide) {
       body.linearVelocity.x = 0;
       _isAccelerating = false;
+      // print('4');
+    }
+    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
+      // print('1');
+      _direction -= 1;
+    }
+    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
+      _direction += 1;
     }
 
     return false;
@@ -328,6 +348,8 @@ class Player extends BodyComponent<SquishThemAll>
         } else {
           if (_isWallJumping) {
             playerComponent.flipHorizontally();
+          } else if (_numGroundContacts == 0) {
+            offWall = true;
           }
           _isTouchingFront = false;
           if (contact.fixtureA == leftSensorFixture ||
