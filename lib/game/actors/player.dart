@@ -130,6 +130,7 @@ class Player extends BodyComponent<SquishThemAll>
         } else {
           int wallBounceDir = playerComponent.isFlippedHorizontally ? 1 : -1;
           _isWallJumping = true;
+          offWall = true;
           body.applyLinearImpulse(
               Vector2(wallBounceDir * _wallBounceForce, -1.7));
         }
@@ -145,10 +146,6 @@ class Player extends BodyComponent<SquishThemAll>
   void update(double dt) {
     super.update(dt);
 
-    // if (offWall) {
-    //   print(offWall);
-    // }
-
     if (playerComponent.current == PlayerState.disappear) {
       body.linearVelocity = Vector2.zero();
       body.gravityOverride = Vector2.zero();
@@ -157,10 +154,9 @@ class Player extends BodyComponent<SquishThemAll>
 
     _jumpTimeout -= 1;
 
-    final velocity = body.linearVelocity.clone();
+    // print(body.linearVelocity.x);
 
-    // print(_direction);
-    // print(offWall);
+    final velocity = body.linearVelocity.clone();
 
     // player is in the air or wall sliding
     if (_numGroundContacts == 0 ||
@@ -181,6 +177,14 @@ class Player extends BodyComponent<SquishThemAll>
           // player is falling
         } else {
           playerComponent.current = PlayerState.fall;
+          // when player is moving away from the wall
+          if (offWall) {
+            // make player stop
+            body.linearVelocity.x = 0;
+            offWall = false;
+            // make player face away from the wall
+            playerComponent.flipHorizontally();
+          }
         }
         // upward velocity (jumping)
       } else if (velocity.y < 0) {
@@ -194,6 +198,10 @@ class Player extends BodyComponent<SquishThemAll>
         // use regular jump animation
         if (_extraJumps != 0) {
           playerComponent.current = PlayerState.jump;
+          if (offWall) {
+            playerComponent.flipHorizontally();
+            offWall = false;
+          }
           // use double jump animation for the last jump
         } else {
           playerComponent.current = PlayerState.doubleJump;
@@ -205,43 +213,38 @@ class Player extends BodyComponent<SquishThemAll>
       if (velocity.x != 0 && !_isTouchingFront) {
         playerComponent.current = PlayerState.run;
       } else {
+        if (_numGroundContacts == 2 &&
+            playerComponent.current == PlayerState.wallSlide) {
+          playerComponent.flipHorizontally();
+        }
         playerComponent.current = PlayerState.idle;
       }
     }
 
+    // todo get rid of wall stop
     double wallStop = 1;
 
     if (_isTouchingFront) {
       wallStop = _changeDirForce;
     }
 
-    // when player is getting away from the wall
-    if (offWall) {
-      // make player stop
-      body.linearVelocity.x = 0;
-      offWall = false;
-      // make player face away from the wall
-      playerComponent.flipHorizontally();
-      // print('2');
-    }
-
     // player is moving
     if (_direction != 0) {
-      // print('3');
       // velocity is slower or equal to the _maxSpeed
-      if (!(velocity.x * velocity.x > _maxSpeed2)) {
+      if (velocity.x * velocity.x <= _maxSpeed2) {
         // when you are not making a turn
         if (!_isAccelerating && !_isWallJumping) {
-          body.applyForce(Vector2(_direction, 0));
-          // print('this is where it ended up');
-          // when you are making a turn
+          if (!(velocity.x * velocity.x == _maxSpeed2) &&
+              _numGroundContacts < 3) {
+            body.applyForce(Vector2(_direction, 0));
+          }
+          //  when you are making a turn
         } else {
           // apply greater force to make the turn faster
           body.applyForce(Vector2(_direction * _changeDirForce / wallStop, 0));
-          // until the velocity reaches half of the max speed, apply greater force
+          // once the velocity surpasses half of the max speed, apply normal force
           if (velocity.x * velocity.x >= _maxSpeed2 / 2) {
             _isAccelerating = true;
-            // once the velocity surpasses half of the max speed, apply normal force
           }
         }
         // velocity is greater than _maxSpeed
@@ -295,10 +298,8 @@ class Player extends BodyComponent<SquishThemAll>
         playerComponent.current != PlayerState.wallSlide) {
       body.linearVelocity.x = 0;
       _isAccelerating = false;
-      // print('4');
     }
     if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
-      // print('1');
       _direction -= 1;
     }
     if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
@@ -328,10 +329,6 @@ class Player extends BodyComponent<SquishThemAll>
             _rightSensorOn = true;
           }
         }
-      } else {
-        if (_numGroundContacts == 2) {
-          playerComponent.flipHorizontally();
-        }
       }
     }
 
@@ -346,9 +343,7 @@ class Player extends BodyComponent<SquishThemAll>
             contact.fixtureB == footSensorFixture) {
           _numGroundContacts -= 1;
         } else {
-          if (_isWallJumping) {
-            playerComponent.flipHorizontally();
-          } else if (_numGroundContacts == 0) {
+          if (!_isWallJumping && _numGroundContacts == 0) {
             offWall = true;
           }
           _isTouchingFront = false;
