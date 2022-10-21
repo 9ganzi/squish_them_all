@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
+import 'package:squish_them_all/game/actors/wall.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:flutter/services.dart';
 // import 'package:squish_them_all/game/actors/wall.dart';
@@ -146,6 +147,8 @@ class Player extends BodyComponent<SquishThemAll>
   void update(double dt) {
     super.update(dt);
 
+    // print(body.position.x);
+
     if (playerComponent.current == PlayerState.disappear) {
       body.linearVelocity = Vector2.zero();
       body.gravityOverride = Vector2.zero();
@@ -154,7 +157,7 @@ class Player extends BodyComponent<SquishThemAll>
 
     _jumpTimeout -= 1;
 
-    // print(body.linearVelocity.x);
+    // print(body.position);
 
     final velocity = body.linearVelocity.clone();
 
@@ -221,27 +224,19 @@ class Player extends BodyComponent<SquishThemAll>
       }
     }
 
-    // todo get rid of wall stop
-    double wallStop = 1;
-
-    if (_isTouchingFront) {
-      wallStop = _changeDirForce;
-    }
-
     // player is moving
     if (_direction != 0) {
       // velocity is slower or equal to the _maxSpeed
       if (velocity.x * velocity.x <= _maxSpeed2) {
         // when you are not making a turn
-        if (!_isAccelerating && !_isWallJumping) {
+        if (!_isAccelerating && !_isWallJumping || _isTouchingFront) {
           if (!(velocity.x * velocity.x == _maxSpeed2) &&
               _numGroundContacts < 3) {
             body.applyForce(Vector2(_direction, 0));
           }
           //  when you are making a turn
         } else {
-          // apply greater force to make the turn faster
-          body.applyForce(Vector2(_direction * _changeDirForce / wallStop, 0));
+          body.applyForce(Vector2(_direction * _changeDirForce, 0));
           // once the velocity surpasses half of the max speed, apply normal force
           if (velocity.x * velocity.x >= _maxSpeed2 / 2) {
             _isAccelerating = true;
@@ -311,7 +306,7 @@ class Player extends BodyComponent<SquishThemAll>
 
   @override
   void beginContact(Object other, Contact contact) {
-    if (other is Ground) {
+    if (other is Ground || other is Wall) {
       if (contact.fixtureA.isSensor || contact.fixtureB.isSensor) {
         if (contact.fixtureA == footSensorFixture ||
             contact.fixtureB == footSensorFixture) {
@@ -331,13 +326,12 @@ class Player extends BodyComponent<SquishThemAll>
         }
       }
     }
-
     super.beginContact(other, contact);
   }
 
   @override
   void endContact(Object other, Contact contact) {
-    if (other is Ground) {
+    if (other is Ground || other is Wall) {
       if (contact.fixtureA.isSensor || contact.fixtureB.isSensor) {
         if (contact.fixtureA == footSensorFixture ||
             contact.fixtureB == footSensorFixture) {
@@ -363,6 +357,7 @@ class Player extends BodyComponent<SquishThemAll>
   @override
   Body createBody() {
     // debugMode = true;
+
     final bodyDef = BodyDef(
       userData: this,
       position: _position,
@@ -394,9 +389,9 @@ class Player extends BodyComponent<SquishThemAll>
 
     final leftSensor = PolygonShape()
       ..setAsBox(
-        shape.vertices[2][0] * .3,
+        shape.vertices[2][0] * .5,
         (shape.vertices[2][1] - shape.centroid.y) * .85,
-        Vector2(-(shape.vertices[2][0] * .7), shape.centroid.y),
+        Vector2(-(shape.vertices[2][0] * .5), shape.centroid.y),
         0,
       );
 

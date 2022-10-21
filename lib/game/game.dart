@@ -20,11 +20,7 @@ class SquishThemAll extends Forge2DGame
   late Player player;
 
   // Todo: change gravity back to 15
-  SquishThemAll()
-      : super(
-          zoom: zoomLevel,
-          gravity: Vector2(0, 15),
-        );
+  SquishThemAll() : super(zoom: zoomLevel, gravity: Vector2(0, 15));
 
   @override
   Future<void>? onLoad() async {
