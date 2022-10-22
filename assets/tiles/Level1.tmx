@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="24" height="13" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="80">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="24" height="13" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="81">
  <tileset firstgid="1" source="1 - _Complete_static_BG_(288 x 208).tsx"/>
  <tileset firstgid="235" source="1 - Terrain (16 x 16).tsx"/>
  <tileset firstgid="405" source="Fruits - Apple.tsx"/>
@@ -27,8 +27,7 @@
   <object id="72" type="Ground" x="96" y="192" width="64" height="16"/>
  </objectgroup>
  <objectgroup id="3" name="SpawnPoints">
-  <object id="15" type="Player" gid="422" x="192" y="160" width="32" height="32"/>
-  <object id="20" type="Angry Pig" gid="434" x="288" y="192" width="36" height="30"/>
+  <object id="15" type="Player" gid="422" x="112" y="144" width="32" height="32"/>
   <object id="21" type="Bananas" gid="443" x="192" y="160" width="32" height="32"/>
   <object id="38" type="Apple" gid="405" x="160" y="160" width="32" height="32"/>
   <object id="66" type="Portal" gid="702" x="320" y="160" width="64" height="64">
@@ -36,5 +35,6 @@
     <property name="NextLevel" value="Level2.tmx"/>
    </properties>
   </object>
+  <object id="80" type="Angry Pig" gid="434" x="176" y="160" width="36" height="30"/>
  </objectgroup>
 </map>

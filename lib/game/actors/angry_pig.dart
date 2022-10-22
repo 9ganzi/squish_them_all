@@ -20,11 +20,8 @@ class AngryPig extends Enemy {
   final _size = Vector2(36, 30);
   final Vector2 _position;
   final List<double> turningPoints = List<double>.empty(growable: true);
-  late double destination;
   bool angry = false;
-  bool stop = false;
-  final int turnTimeoutValue = 15;
-  late int turnTimeout = 0;
+  double walkSpeed = 30;
   int turnStep = 0;
   late Fixture fixture;
   late Fixture leftSensorFixture;
@@ -47,8 +44,6 @@ class AngryPig extends Enemy {
     );
 
     direction = Random().nextInt(2) == 0 ? -1 : 1;
-    // delete below
-    direction = -1;
 
     final animations = {
       AngryPigState.idle: SpriteSheet(
@@ -83,11 +78,19 @@ class AngryPig extends Enemy {
     add(_angryPigComponent);
   }
 
+  double waitTimeout = 1;
+  final double turnTimeoutValue = 1.5;
+  double turnTimeout = 0;
+
   @override
   void update(double dt) {
     super.update(dt);
 
-    turnTimeout -= 1;
+    turnTimeout -= dt;
+
+    if (waitTimeout >= 0) {
+      waitTimeout -= dt;
+    }
 
     // print(body.position.x);
     // print(turnStep);
@@ -104,10 +107,10 @@ class AngryPig extends Enemy {
       _angryPigComponent.current = AngryPigState.run;
     }
 
-    if (turningPoints.length == 2) {
+    if (turningPoints.length == 2 && waitTimeout <= 0) {
       // step 0: stop
-      if ((body.position.x < turningPoints[0] ||
-              body.position.x > turningPoints[1]) &&
+      if ((body.position.x <= turningPoints[0] ||
+              body.position.x >= turningPoints[1]) &&
           turnStep == 0) {
         body.linearVelocity.x = 0;
         direction = -direction;
@@ -116,7 +119,7 @@ class AngryPig extends Enemy {
         // step 1: wait
       } else if (turnStep == 1 && turnTimeout <= 0) {
         // step 2: walk
-        body.linearVelocity.x = direction * .5;
+        body.applyForce(Vector2(direction * walkSpeed, 0));
         turnStep += 1;
       } else if (turnStep == 2 &&
           (body.position.x > turningPoints[0] &&
@@ -200,35 +203,43 @@ class AngryPig extends Enemy {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Ground) {
-      // print(contact.fixtureA.body.userData is Ground);
-
-      // fixtureB is ground
-      if (contact.fixtureA == fixture && turningPoints.length != 2) {
+      if (turningPoints.length != 2) {
         for (final fixture in other.fixtures) {
-          if (contact.fixtureB == fixture[0]) {
-            turningPoints.add(fixture[1] + _size.y / 2 / zoomLevel);
-            turningPoints.add(fixture[2] + _size.y / 2 / zoomLevel);
-          }
-        }
-        // fixtureA is ground
-      } else if (contact.fixtureB == fixture && turningPoints.length != 2) {
-        for (final fixture in other.fixtures) {
-          if (contact.fixtureA == fixture[0]) {
+          if (contact.fixtureA == fixture[0] ||
+              contact.fixtureB == fixture[0]) {
             turningPoints.add(fixture[1] + _size.y / 2 / zoomLevel);
             turningPoints.add(fixture[2] - _size.y / 2 / zoomLevel);
+            // print("[${body.position.x}]");
+            // print("[${turningPoints[0]}, ${turningPoints[1]}]");
+            bool case1 = body.position.x <= turningPoints[0];
+            bool case2 = body.position.x >= turningPoints[1];
+            if (case1 || case2) {
+              turnStep = 0;
+              if ((case1 && direction == 1) || (case2 && direction == -1)) {
+                direction = -direction;
+              }
+            } else {
+              turnStep = 1;
+            }
           }
         }
       }
+    }
+    super.beginContact(other, contact);
+  }
 
-      if (turningPoints.length == 2) {
-        if ((body.position.x < turningPoints[0] ||
-            body.position.x > turningPoints[1])) {
-          turnStep = 0;
-        } else {
-          turnStep = 1;
+  @override
+  void endContact(Object other, Contact contact) {
+    if (other is Ground) {
+      if (contact.fixtureA == fixture || contact.fixtureB == fixture) {
+        for (final fixture in other.fixtures) {
+          if (contact.fixtureA == fixture[0] ||
+              contact.fixtureB == fixture[0]) {
+            turningPoints.clear();
+          }
         }
       }
-      super.beginContact(other, contact);
     }
+    super.endContact(other, contact);
   }
 }
