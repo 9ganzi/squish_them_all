@@ -1,5 +1,6 @@
 // import 'dart:html';
 
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -19,10 +20,11 @@ enum AngryPigState {
   hit2,
 }
 
-class AngryPig extends BodyComponent {
+class AngryPig extends BodyComponent<SquishThemAll> with ContactCallbacks {
   final _size = Vector2(36, 30);
   final Vector2 _position;
   int accelerationX = 0;
+  bool isTaken = false;
 
   late SpriteAnimationGroupComponent _angryPigComponent;
 
@@ -31,6 +33,8 @@ class AngryPig extends BodyComponent {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // add(CircleHitbox()..collisionType = CollisionType.passive);
+
     await gameRef.images.loadAll(
       [
         'Angry Pig - Idle (36x30).png',
@@ -147,14 +151,19 @@ class AngryPig extends BodyComponent {
       ..setFixedRotation(true);
   }
 
-  // @override
-  // void onCollisionStart(
-  //     Set<Vector2> intersectionPoints, PositionComponent other) {
-  //   if (other is Player) {
-  //     other.hit();
-  //     if (gameRef.playerData.health.value > 0) {
+  void hit() {
+    isTaken = true;
+  }
 
-  //     }
-  //   }
-  // }
+  @override
+  void beginContact(Object other, Contact contact) {
+    if (other is Player) {
+      // SequenceEffect can also be used here
+      other.hit();
+      if (gameRef.playerData.health.value > 0) {
+        gameRef.playerData.health.value -= 1;
+      }
+    }
+    super.beginContact(other, contact);
+  }
 }

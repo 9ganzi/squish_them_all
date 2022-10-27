@@ -122,6 +122,9 @@ class Level extends Component with HasGameRef<SquishThemAll> {
             add(bananas);
             break;
           case 'Angry Pig':
+            // final targetObjectId = int.parse(spawnPoint.properties.first.value);
+            // final target = spawnPointsLayer.objects
+            //     .firstWhere((object) => object.id == targetObjectId);
             final angryPig = AngryPig(
               Vector2(
                 (spawnPoint.x + spawnPoint.height / 2) / zoomLevel,

@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
@@ -286,5 +287,17 @@ class Player extends BodyComponent with KeyboardHandler, ContactCallbacks {
       ..createFixture(fixtureDef)
       ..createFixture(footSensorFixture)
       ..setFixedRotation(true);
+  }
+
+  void hit() {
+    add(
+      OpacityEffect.fadeOut(
+        EffectController(
+          alternate: true,
+          duration: 0.1,
+          repeatCount: 5,
+        ),
+      ),
+    );
   }
 }
