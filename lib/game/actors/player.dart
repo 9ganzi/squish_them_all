@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:squish_them_all/game/actors/enemy.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
 import 'package:squish_them_all/game/actors/wall.dart';
 import 'package:squish_them_all/game/game.dart';
@@ -29,11 +30,12 @@ class Player extends BodyComponent<SquishThemAll>
   final Vector2 _position;
   static const double _maxSpeed = 1.25;
   static const double _maxSpeed2 = _maxSpeed * _maxSpeed;
-  double _direction = 0;
+  double _dir = 0;
   final double _jumpForce = -3.75;
   final double _changeDirForce = 2.5;
   final double _wallBounceForce = .3;
   late double _wallSlidePosition;
+  late double _hitDir;
   int _numGroundContacts = 0;
   bool _isAccelerating = false;
   bool _isTouchingFront = false;
@@ -42,13 +44,6 @@ class Player extends BodyComponent<SquishThemAll>
   bool _leftSensorOn = false;
   bool _rightSensorOn = false;
   final double _stopBouncingDistance = .08;
-  final int _jumpTimeoutValue = 5;
-  late int _jumpTimeout = _jumpTimeoutValue;
-  // fixtures are used to identify which sensor is triggered
-  late Fixture fixture;
-  late Fixture footSensorFixture;
-  late Fixture leftSensorFixture;
-  late Fixture rightSensorFixture;
   final int _extraJumpsValue = 1;
   late int _extraJumps = _extraJumpsValue;
   late SpriteAnimationGroupComponent playerComponent;
@@ -98,13 +93,19 @@ class Player extends BodyComponent<SquishThemAll>
       PlayerState.hit: SpriteSheet(
         image: gameRef.images.fromCache('Pink Man - Hit (32x32).png'),
         srcSize: _size,
-      ).createAnimation(row: 0, stepTime: .05),
+      ).createAnimation(row: 0, stepTime: .05, loop: false)
+        ..onStart = () {
+          body.setFixedRotation(false);
+          body.linearVelocity = Vector2.zero();
+          body.applyLinearImpulse(Vector2(_hitDir * .2, -1.5));
+          body.applyAngularImpulse(.01);
+          body.destroyFixture(fixture);
+        },
       PlayerState.disappear: SpriteSheet(
         image: gameRef.images
             .fromCache('Main Characters - Disappearing (96x96).png'),
         srcSize: _size * 3,
-      ).createAnimation(row: 0, stepTime: .8 / 7)
-        ..loop = false,
+      ).createAnimation(row: 0, stepTime: .8 / 7, loop: false),
     };
 
     playerComponent = SpriteAnimationGroupComponent<PlayerState>(
@@ -119,6 +120,9 @@ class Player extends BodyComponent<SquishThemAll>
   }
 
   void jump() {
+    if (playerComponent.current == PlayerState.hit) {
+      return;
+    }
     final velocity = body.linearVelocity.clone();
     // jump from the ground
     if (_numGroundContacts > 0) {
@@ -143,23 +147,32 @@ class Player extends BodyComponent<SquishThemAll>
     }
   }
 
+  final double _jumpTimeoutValue = .1;
+  late double _jumpTimeout = _jumpTimeoutValue;
+  late double destroyHeight = _size.y / 2 / zoomLevel + worldSize.y;
+
   @override
   void update(double dt) {
     super.update(dt);
 
-    // print(body.position.x);
+    _jumpTimeout -= dt;
+    final velocity = body.linearVelocity.clone();
+
+    // print(body.position.y);
+
+    if (playerComponent.current == PlayerState.hit) {
+      if (body.position.y >= destroyHeight) {
+        world.destroyBody(body);
+        removeFromParent();
+      }
+      return;
+    }
 
     if (playerComponent.current == PlayerState.disappear) {
       body.linearVelocity = Vector2.zero();
       body.gravityOverride = Vector2.zero();
       return;
     }
-
-    _jumpTimeout -= 1;
-
-    // print(body.position);
-
-    final velocity = body.linearVelocity.clone();
 
     // player is in the air or wall sliding
     if (_numGroundContacts == 0 ||
@@ -193,7 +206,7 @@ class Player extends BodyComponent<SquishThemAll>
       } else if (velocity.y < 0) {
         // stop the bouncing effect when the player is away from the wall by _stopBouncingDistance
         if (_isWallJumping &&
-            _direction == 0 &&
+            _dir == 0 &&
             (_wallSlidePosition - body.position.x).abs() >
                 _stopBouncingDistance) {
           body.linearVelocity.x = 0;
@@ -225,18 +238,18 @@ class Player extends BodyComponent<SquishThemAll>
     }
 
     // player is moving
-    if (_direction != 0) {
+    if (_dir != 0) {
       // velocity is slower or equal to the _maxSpeed
       if (velocity.x * velocity.x <= _maxSpeed2) {
         // when you are not making a turn
         if (!_isAccelerating && !_isWallJumping || _isTouchingFront) {
           if (!(velocity.x * velocity.x == _maxSpeed2) &&
               _numGroundContacts < 3) {
-            body.applyForce(Vector2(_direction, 0));
+            body.applyForce(Vector2(_dir, 0));
           }
           //  when you are making a turn
         } else {
-          body.applyForce(Vector2(_direction * _changeDirForce, 0));
+          body.applyForce(Vector2(_dir * _changeDirForce, 0));
           // once the velocity surpasses half of the max speed, apply normal force
           if (velocity.x * velocity.x >= _maxSpeed2 / 2) {
             _isAccelerating = true;
@@ -262,13 +275,13 @@ class Player extends BodyComponent<SquishThemAll>
     // }
 
     // flip animations according to player directions
-    if (_direction < 0) {
+    if (_dir < 0) {
       if (!playerComponent.isFlippedHorizontally &&
           playerComponent.current != PlayerState.wallSlide) {
         _isAccelerating = true;
         playerComponent.flipHorizontally();
       }
-    } else if (_direction > 0) {
+    } else if (_dir > 0) {
       if (playerComponent.isFlippedHorizontally &&
           playerComponent.current != PlayerState.wallSlide) {
         _isAccelerating = true;
@@ -279,7 +292,7 @@ class Player extends BodyComponent<SquishThemAll>
 
   @override
   bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    _direction = 0;
+    _dir = 0;
 
     if (event is RawKeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowUp && _jumpTimeout < 0) {
@@ -295,17 +308,38 @@ class Player extends BodyComponent<SquishThemAll>
       _isAccelerating = false;
     }
     if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
-      _direction -= 1;
+      _dir -= 1;
     }
     if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
-      _direction += 1;
+      _dir += 1;
     }
 
     return false;
   }
 
+  // fixtures are used to identify which sensor is triggered
+  late final Fixture fixture;
+  late final Fixture footSensorFixture;
+  late final Fixture leftSensorFixture;
+  late final Fixture rightSensorFixture;
+
   @override
   void beginContact(Object other, Contact contact) {
+    if (other is Enemy) {
+      if ((contact.fixtureA.isSensor || contact.fixtureB.isSensor)) {
+        if (contact.fixtureA == leftSensorFixture ||
+            contact.fixtureB == leftSensorFixture) {
+          // print('left hit');
+          _hitDir = 1;
+          playerComponent.current = PlayerState.hit;
+        } else if (contact.fixtureA == rightSensorFixture ||
+            contact.fixtureB == rightSensorFixture) {
+          // print('right hit');
+          _hitDir = -1;
+          playerComponent.current = PlayerState.hit;
+        }
+      }
+    }
     if (other is Ground || other is Wall) {
       if (contact.fixtureA.isSensor || contact.fixtureB.isSensor) {
         if (contact.fixtureA == footSensorFixture ||
@@ -417,7 +451,7 @@ class Player extends BodyComponent<SquishThemAll>
 
     final body = world.createBody(bodyDef)..setFixedRotation(true);
 
-    fixture = body.createFixture(fixtureDef);
+    fixture = body.createFixture(fixtureDef)..filterData.groupIndex = -1;
     footSensorFixture = body.createFixture(footSensorFixtureDef);
     leftSensorFixture = body.createFixture(leftSensorFixtureDef);
     rightSensorFixture = body.createFixture(rightSensorFixtureDef);

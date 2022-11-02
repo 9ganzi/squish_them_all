@@ -79,8 +79,13 @@ class Portal extends BodyComponent<SquishThemAll> with ContactCallbacks {
   @override
   void beginContact(Object other, Contact contact) {
     if (other is Player) {
+      SpriteAnimationGroupComponent playerComponent =
+          gameRef.player.playerComponent;
+      if (playerComponent.current == PlayerState.hit) {
+        return;
+      }
       _portalComponent.current = PortalState.disappear;
-      gameRef.player.playerComponent.current = PlayerState.disappear;
+      playerComponent.current = PlayerState.disappear;
     }
   }
 }

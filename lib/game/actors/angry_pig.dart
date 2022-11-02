@@ -5,8 +5,8 @@ import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/enemy.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
-import 'package:squish_them_all/game/actors/wall.dart';
 import 'package:squish_them_all/game/game.dart';
+// import 'package:squish_them_all/game/actors/wall.dart';
 
 enum AngryPigState {
   idle,
@@ -193,7 +193,7 @@ class AngryPig extends Enemy {
 
     final body = world.createBody(bodyDef)..setFixedRotation(true);
 
-    fixture = body.createFixture(fixtureDef);
+    fixture = body.createFixture(fixtureDef)..filterData.groupIndex = -1;
     leftSensorFixture = body.createFixture(leftSensorFixtureDef);
     rightSensorFixture = body.createFixture(rightSensorFixtureDef);
 
@@ -209,8 +209,8 @@ class AngryPig extends Enemy {
               contact.fixtureB == fixture[0]) {
             turningPoints.add(fixture[1] + _size.y / 2 / zoomLevel);
             turningPoints.add(fixture[2] - _size.y / 2 / zoomLevel);
-            // print("[${body.position.x}]");
-            // print("[${turningPoints[0]}, ${turningPoints[1]}]");
+            // print('[${body.position.x}]');
+            // print('[${turningPoints[0]}, ${turningPoints[1]}]');
             bool case1 = body.position.x <= turningPoints[0];
             bool case2 = body.position.x >= turningPoints[1];
             if (case1 || case2) {
