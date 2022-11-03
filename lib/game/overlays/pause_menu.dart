@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flame/components.dart';
+import 'package:flame/input.dart';
 
 import 'package:squish_them_all/game/game.dart';
 import 'main_menu.dart';
+import 'package:squish_them_all/game/overlays/game_over.dart';
 
 class PauseMenu extends StatelessWidget {
   static const id = 'PauseMenu';

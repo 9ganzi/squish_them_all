@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'game/game.dart';
-
 import 'package:squish_them_all/game/overlays/game_over.dart';
 import 'package:squish_them_all/game/overlays/main_menu.dart';
 import 'package:squish_them_all/game/overlays/pause_menu.dart';

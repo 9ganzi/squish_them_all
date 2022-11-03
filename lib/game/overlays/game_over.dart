@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:squish_them_all/game/game.dart';
-
 import 'main_menu.dart';
 
 class GameOver extends StatelessWidget {
