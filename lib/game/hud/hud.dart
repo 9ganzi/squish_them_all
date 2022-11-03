@@ -17,7 +17,7 @@ class Hud extends Component with HasGameRef<SquishThemAll> {
   Future<void>? onLoad() async {
     // load image
     await gameRef.images.load('Pink Man - Idle (32x32).png');
-    gameRef.images.load('Spritesheet.png');
+    await gameRef.images.load('Spritesheet.png');
 
     // Score text
     scoreTextComponent = TextComponent(
