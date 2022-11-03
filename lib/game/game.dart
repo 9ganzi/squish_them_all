@@ -25,11 +25,7 @@ class SquishThemAll extends Forge2DGame
   final playerData = PlayerData();
 
   // Todo: change gravity back to 15
-  SquishThemAll()
-      : super(
-          zoom: zoomLevel,
-          gravity: Vector2(0, 15),
-        );
+  SquishThemAll() : super(zoom: zoomLevel, gravity: Vector2(0, 15));
 
   @override
   Future<void>? onLoad() async {
@@ -40,7 +36,7 @@ class SquishThemAll extends Forge2DGame
     // is always the same in your game, no matter the platform.
     camera.viewport = FixedResolutionViewport(screenSize);
 
-    loadLevel('Level1 Temp.tmx');
+    loadLevel('Level1.tmx');
 
     add(Hud(priority: 1));
 

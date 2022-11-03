@@ -1,4 +1,4 @@
-import 'dart:ui';
+// import 'dart:ui';
 
 import 'package:flame_forge2d/flame_forge2d.dart';
 
@@ -23,9 +23,9 @@ class Wall extends BodyComponent<SquishThemAll> {
     wall = world.createBody(bodyDef);
 
     final shape1 = EdgeShape()..set(Vector2.zero(), Vector2(0, _worldSize.y));
-    final shape2 = EdgeShape()..set(Vector2.zero(), Vector2(_worldSize.x, 0));
-    final shape3 = EdgeShape()
+    final shape2 = EdgeShape()
       ..set(Vector2(_worldSize.x, 0), Vector2(_worldSize.x, _worldSize.y));
+    final shape3 = EdgeShape()..set(Vector2.zero(), Vector2(_worldSize.x, 0));
 
     wall
       ..createFixtureFromShape(shape1)

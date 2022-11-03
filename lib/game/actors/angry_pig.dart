@@ -1,16 +1,13 @@
-// import 'dart:html';
-
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/actors/player.dart';
+import 'dart:math';
+
+import 'package:squish_them_all/game/actors/enemy.dart';
+import 'package:squish_them_all/game/actors/ground.dart';
 import 'package:squish_them_all/game/game.dart';
-// import 'package:flame/sprite.dart';
-// import 'package:flame/components.dart';
-// import 'package:flame_forge2d/flame_forge2d.dart';
-// import 'package:flutter/services.dart';
-// import 'package:flutter/widgets.dart';
+// import 'package:squish_them_all/game/actors/wall.dart';
 
 enum AngryPigState {
   idle,
@@ -20,15 +17,20 @@ enum AngryPigState {
   hit2,
 }
 
-class AngryPig extends BodyComponent<SquishThemAll> with ContactCallbacks {
+class AngryPig extends Enemy {
   final _size = Vector2(36, 30);
   final Vector2 _position;
-  int accelerationX = 0;
+  final List<double> turningPoints = List<double>.empty(growable: true);
+  bool angry = false;
+  double walkSpeed = 30;
+  int turnStep = 0;
   bool isTaken = false;
-
+  late Fixture fixture;
+  late Fixture leftSensorFixture;
+  late Fixture rightSensorFixture;
   late SpriteAnimationGroupComponent _angryPigComponent;
 
-  AngryPig(this._position, {super.renderBody = false});
+  AngryPig(this._position, {super.renderBody = false}) : super(_position);
 
   @override
   Future<void> onLoad() async {
@@ -44,6 +46,8 @@ class AngryPig extends BodyComponent<SquishThemAll> with ContactCallbacks {
         'Angry Pig - Hit 2 (36x30).png',
       ],
     );
+
+    direction = Random().nextInt(2) == 0 ? -1 : 1;
 
     final animations = {
       AngryPigState.idle: SpriteSheet(
@@ -72,54 +76,69 @@ class AngryPig extends BodyComponent<SquishThemAll> with ContactCallbacks {
       anchor: Anchor.center,
       size: _size / zoomLevel,
       animations: animations,
-      current: AngryPigState.run,
+      current: AngryPigState.idle,
     );
 
     add(_angryPigComponent);
   }
 
-  void idle() {
-    accelerationX = 0;
-  }
-
-  void walkLeft() {
-    accelerationX = -1;
-  }
-
-  void walkRight() {
-    accelerationX = 1;
-  }
+  double waitTimeout = 1;
+  final double turnTimeoutValue = 1.5;
+  double turnTimeout = 0;
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    final velocity = body.linearVelocity;
-    final position = body.position;
+    turnTimeout -= dt;
 
-    if (accelerationX != 0) {
-      _angryPigComponent.current = AngryPigState.run;
+    if (waitTimeout >= 0) {
+      waitTimeout -= dt;
+    }
+
+    // print(body.position.x);
+    // print(turnStep);
+
+    final velocity = body.linearVelocity.clone();
+
+    if (!angry) {
+      if (velocity.x != 0) {
+        _angryPigComponent.current = AngryPigState.walk;
+      } else {
+        _angryPigComponent.current = AngryPigState.idle;
+      }
     } else {
-      _angryPigComponent.current = AngryPigState.idle;
+      _angryPigComponent.current = AngryPigState.run;
     }
 
-    velocity.x = accelerationX * 1;
-    body.linearVelocity = velocity;
-
-    if (position.x > worldSize.x) {
-      position.x = 0;
-      body.setTransform(position, 0);
-    } else if (position.x < 0) {
-      position.x = worldSize.x;
-      body.setTransform(position, 0);
+    if (turningPoints.length == 2 && waitTimeout <= 0) {
+      // step 0: stop
+      if ((body.position.x <= turningPoints[0] ||
+              body.position.x >= turningPoints[1]) &&
+          turnStep == 0) {
+        body.linearVelocity.x = 0;
+        direction = -direction;
+        turnTimeout = turnTimeoutValue;
+        turnStep += 1;
+        // step 1: wait
+      } else if (turnStep == 1 && turnTimeout <= 0) {
+        // step 2: walk
+        body.applyForce(Vector2(direction * walkSpeed, 0));
+        turnStep += 1;
+      } else if (turnStep == 2 &&
+          (body.position.x > turningPoints[0] &&
+              body.position.x < turningPoints[1])) {
+        turnStep = 0;
+      }
     }
 
-    if (accelerationX < 0) {
-      if (!_angryPigComponent.isFlippedHorizontally) {
+    // change direction
+    if (direction < 0 && turnStep == 2) {
+      if (_angryPigComponent.isFlippedHorizontally) {
         _angryPigComponent.flipHorizontally();
       }
-    } else if (accelerationX > 0) {
-      if (_angryPigComponent.isFlippedHorizontally) {
+    } else if (direction > 0 && turnStep == 2) {
+      if (!_angryPigComponent.isFlippedHorizontally) {
         _angryPigComponent.flipHorizontally();
       }
     }
@@ -128,6 +147,7 @@ class AngryPig extends BodyComponent<SquishThemAll> with ContactCallbacks {
   @override
   Body createBody() {
     // debugMode = true;
+
     final bodyDef = BodyDef(
       userData: this,
       position: _position,
@@ -146,17 +166,69 @@ class AngryPig extends BodyComponent<SquishThemAll> with ContactCallbacks {
       ..density = 15
       ..friction = 0
       ..restitution = 0;
-    return world.createBody(bodyDef)
-      ..createFixture(fixtureDef)
-      ..setFixedRotation(true);
-  }
 
-  void hit() {
-    isTaken = true;
+    final leftSensor = PolygonShape()
+      ..setAsBox(
+        shape.vertices[2][0] * .5,
+        (shape.vertices[2][1] - shape.centroid.y) * .85,
+        Vector2(-(shape.vertices[2][0] * .5), shape.centroid.y),
+        0,
+      );
+
+    final leftSensorFixtureDef = FixtureDef(
+      leftSensor,
+      userData: this,
+      isSensor: true,
+    );
+
+    final rightSensor = PolygonShape()
+      ..setAsBox(
+        leftSensor.vertices[2][0] - leftSensor.centroid.x,
+        (leftSensor.vertices[2][1] - leftSensor.centroid.y),
+        Vector2(-leftSensor.centroid.x, leftSensor.centroid.y),
+        0,
+      );
+
+    final rightSensorFixtureDef = FixtureDef(
+      rightSensor,
+      userData: this,
+      isSensor: true,
+    );
+
+    final body = world.createBody(bodyDef)..setFixedRotation(true);
+
+    fixture = body.createFixture(fixtureDef)..filterData.groupIndex = -1;
+    leftSensorFixture = body.createFixture(leftSensorFixtureDef);
+    rightSensorFixture = body.createFixture(rightSensorFixtureDef);
+
+    return body;
   }
 
   @override
   void beginContact(Object other, Contact contact) {
+    if (other is Ground) {
+      if (turningPoints.length != 2) {
+        for (final fixture in other.fixtures) {
+          if (contact.fixtureA == fixture[0] ||
+              contact.fixtureB == fixture[0]) {
+            turningPoints.add(fixture[1] + _size.y / 2 / zoomLevel);
+            turningPoints.add(fixture[2] - _size.y / 2 / zoomLevel);
+            // print('[${body.position.x}]');
+            // print('[${turningPoints[0]}, ${turningPoints[1]}]');
+            bool case1 = body.position.x <= turningPoints[0];
+            bool case2 = body.position.x >= turningPoints[1];
+            if (case1 || case2) {
+              turnStep = 0;
+              if ((case1 && direction == 1) || (case2 && direction == -1)) {
+                direction = -direction;
+              }
+            } else {
+              turnStep = 1;
+            }
+          }
+        }
+      }
+    }
     if (other is Player) {
       // SequenceEffect can also be used here
       other.hit();
@@ -165,5 +237,24 @@ class AngryPig extends BodyComponent<SquishThemAll> with ContactCallbacks {
       }
     }
     super.beginContact(other, contact);
+  }
+
+  @override
+  void endContact(Object other, Contact contact) {
+    if (other is Ground) {
+      if (contact.fixtureA == fixture || contact.fixtureB == fixture) {
+        for (final fixture in other.fixtures) {
+          if (contact.fixtureA == fixture[0] ||
+              contact.fixtureB == fixture[0]) {
+            turningPoints.clear();
+          }
+        }
+      }
+    }
+    super.endContact(other, contact);
+  }
+
+  void hit() {
+    isTaken = true;
   }
 }
