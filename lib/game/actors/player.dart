@@ -332,7 +332,13 @@ class Player extends BodyComponent<SquishThemAll>
       if (_playerComponent.current == PlayerState.hit) {
         return;
       }
-      if ((contact.fixtureA.isSensor || contact.fixtureB.isSensor)) {
+      final playerDir =
+          (body.worldCenter - other.body.worldCenter).normalized();
+      if (playerDir.dot(Vector2(0, -1)) > .85) {
+        _extraJumps = _extraJumpsValue + 1;
+        jump();
+        other.hit();
+      } else {
         if (contact.fixtureA == _leftSensorFixture ||
             contact.fixtureB == _leftSensorFixture) {
           // print('left hit');
@@ -352,6 +358,7 @@ class Player extends BodyComponent<SquishThemAll>
         }
       }
     }
+
     if (other is Ground || other is Wall) {
       if (contact.fixtureA.isSensor || contact.fixtureB.isSensor) {
         if (contact.fixtureA == _footSensorFixture ||
@@ -372,6 +379,7 @@ class Player extends BodyComponent<SquishThemAll>
         }
       }
     }
+
     if (other is Portal) {
       if (_playerComponent.current == PlayerState.hit) {
         return;
@@ -379,6 +387,7 @@ class Player extends BodyComponent<SquishThemAll>
       other.disappear();
       _playerComponent.current = PlayerState.disappear;
     }
+
     if (other is Fruit) {
       if (contact.fixtureA == _fixture || contact.fixtureB == _fixture) {
         gameRef.playerData.score.value += 10;

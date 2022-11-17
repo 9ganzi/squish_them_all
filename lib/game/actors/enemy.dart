@@ -11,4 +11,6 @@ class Enemy extends BodyComponent<SquishThemAll> with ContactCallbacks {
   Body createBody() {
     throw UnimplementedError();
   }
+
+  void hit() {}
 }
