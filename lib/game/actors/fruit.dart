@@ -1,9 +1,9 @@
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
+// import 'package:flame/effects.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/game.dart';
-import 'package:squish_them_all/game/actors/player.dart';
+// import 'package:squish_them_all/game/actors/player.dart';
 
 enum FruitState {
   idle,
@@ -64,19 +64,7 @@ class Fruit extends BodyComponent<SquishThemAll> with ContactCallbacks {
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 
-  @override
-  void beginContact(Object other, Contact contact) {
-    if (other is Player) {
-      _fruitComponent.current = FruitState.collected;
-      add(
-        OpacityEffect.fadeOut(
-          LinearEffectController(0.3),
-          onComplete: () {
-            add(RemoveEffect());
-          },
-        ),
-      );
-      gameRef.playerData.score.value += 10;
-    }
+  void collected() {
+    _fruitComponent.current = FruitState.collected;
   }
 }

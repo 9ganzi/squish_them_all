@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/game.dart';
-import 'package:squish_them_all/game/actors/player.dart';
+// import 'package:squish_them_all/game/actors/player.dart';
 
 enum PortalState {
   idle,
@@ -11,11 +11,11 @@ enum PortalState {
 
 class Portal extends BodyComponent<SquishThemAll> with ContactCallbacks {
   final _size = Vector2(64, 64);
-  final Vector2 position;
+  final Vector2 _position;
   late SpriteAnimationGroupComponent _portalComponent;
   Function? onPlayerEnter;
 
-  Portal(this.position, {this.onPlayerEnter, super.renderBody = false});
+  Portal(this._position, {this.onPlayerEnter, super.renderBody = false});
 
   @override
   Future<void> onLoad() async {
@@ -55,7 +55,7 @@ class Portal extends BodyComponent<SquishThemAll> with ContactCallbacks {
     // debugMode = true;
     final bodyDef = BodyDef(
       userData: this,
-      position: position,
+      position: _position,
       type: BodyType.static,
     );
 
@@ -76,16 +76,7 @@ class Portal extends BodyComponent<SquishThemAll> with ContactCallbacks {
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 
-  @override
-  void beginContact(Object other, Contact contact) {
-    if (other is Player) {
-      SpriteAnimationGroupComponent playerComponent =
-          gameRef.player.playerComponent;
-      if (playerComponent.current == PlayerState.hit) {
-        return;
-      }
-      _portalComponent.current = PortalState.disappear;
-      playerComponent.current = PlayerState.disappear;
-    }
+  void disappear() {
+    _portalComponent.current = PortalState.disappear;
   }
 }

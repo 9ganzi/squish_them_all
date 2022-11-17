@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:squish_them_all/game/actors/player.dart';
+// import 'package:squish_them_all/game/actors/player.dart';
 import 'dart:math';
 
 import 'package:squish_them_all/game/actors/enemy.dart';
@@ -24,10 +24,7 @@ class AngryPig extends Enemy {
   bool angry = false;
   double walkSpeed = 30;
   int turnStep = 0;
-  bool isTaken = false;
   late Fixture fixture;
-  late Fixture leftSensorFixture;
-  late Fixture rightSensorFixture;
   late SpriteAnimationGroupComponent _angryPigComponent;
 
   AngryPig(this._position, {super.renderBody = false}) : super(_position);
@@ -35,7 +32,6 @@ class AngryPig extends Enemy {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // add(CircleHitbox()..collisionType = CollisionType.passive);
 
     await gameRef.images.loadAll(
       [
@@ -167,39 +163,9 @@ class AngryPig extends Enemy {
       ..friction = 0
       ..restitution = 0;
 
-    final leftSensor = PolygonShape()
-      ..setAsBox(
-        shape.vertices[2][0] * .5,
-        (shape.vertices[2][1] - shape.centroid.y) * .85,
-        Vector2(-(shape.vertices[2][0] * .5), shape.centroid.y),
-        0,
-      );
-
-    final leftSensorFixtureDef = FixtureDef(
-      leftSensor,
-      userData: this,
-      isSensor: true,
-    );
-
-    final rightSensor = PolygonShape()
-      ..setAsBox(
-        leftSensor.vertices[2][0] - leftSensor.centroid.x,
-        (leftSensor.vertices[2][1] - leftSensor.centroid.y),
-        Vector2(-leftSensor.centroid.x, leftSensor.centroid.y),
-        0,
-      );
-
-    final rightSensorFixtureDef = FixtureDef(
-      rightSensor,
-      userData: this,
-      isSensor: true,
-    );
-
     final body = world.createBody(bodyDef)..setFixedRotation(true);
 
     fixture = body.createFixture(fixtureDef)..filterData.groupIndex = -1;
-    leftSensorFixture = body.createFixture(leftSensorFixtureDef);
-    rightSensorFixture = body.createFixture(rightSensorFixtureDef);
 
     return body;
   }
@@ -229,13 +195,6 @@ class AngryPig extends Enemy {
         }
       }
     }
-    if (other is Player) {
-      // SequenceEffect can also be used here
-      other.hit();
-      if (gameRef.playerData.health.value > 0) {
-        gameRef.playerData.health.value -= 1;
-      }
-    }
     super.beginContact(other, contact);
   }
 
@@ -252,9 +211,5 @@ class AngryPig extends Enemy {
       }
     }
     super.endContact(other, contact);
-  }
-
-  void hit() {
-    isTaken = true;
   }
 }
