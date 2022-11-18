@@ -3,6 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/game.dart';
+import 'package:squish_them_all/game/utils/audio_manager.dart';
 // import 'package:squish_them_all/game/actors/player.dart';
 
 enum FruitState {
@@ -34,6 +35,7 @@ class Fruit extends BodyComponent<SquishThemAll> with ContactCallbacks {
         srcSize: _size,
       ).createAnimation(row: 0, stepTime: 0.05)
         ..onComplete = () {
+          // AudioManager.playSfx('Collectibles.wav');
           world.destroyBody(body);
           removeFromParent();
         }

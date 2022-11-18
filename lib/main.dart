@@ -22,9 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Squish Them All!',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData.dark(),
       home: Scaffold(
         body: GameWidget<SquishThemAll>(
           game: kDebugMode ? SquishThemAll() : _game,

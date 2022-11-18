@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 // import 'package:flame/input.dart';
 
 import 'package:squish_them_all/game/game.dart';
+import '../utils/audio_manager.dart';
 import 'main_menu.dart';
 // import 'package:squish_them_all/game/overlays/game_over.dart';
 
@@ -24,6 +25,7 @@ class PauseMenu extends StatelessWidget {
               width: 100,
               child: ElevatedButton(
                 onPressed: () {
+                  AudioManager.resumeBgm();
                   gameRef.overlays.remove(id);
                   gameRef.resumeEngine();
                 },

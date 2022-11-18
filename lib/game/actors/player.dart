@@ -8,6 +8,7 @@ import 'package:squish_them_all/game/actors/portal.dart';
 import 'package:squish_them_all/game/actors/wall.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:flutter/services.dart';
+import 'package:squish_them_all/game/utils/audio_manager.dart';
 // import 'package:squish_them_all/game/actors/wall.dart';
 // import 'package:flame/input.dart';
 // import 'package:flame/components.dart';
@@ -126,6 +127,7 @@ class Player extends BodyComponent<SquishThemAll>
       return;
     }
     final velocity = body.linearVelocity.clone();
+    AudioManager.playSfx('Jump.wav');
     // jump from the ground
     if (_numGroundContacts > 0) {
       //  player can jump unless it is already jumping and touching the wall
@@ -384,6 +386,7 @@ class Player extends BodyComponent<SquishThemAll>
       if (_playerComponent.current == PlayerState.hit) {
         return;
       }
+      // AudioManager.playSfx('Blop.wav');
       other.disappear();
       _playerComponent.current = PlayerState.disappear;
     }
@@ -392,6 +395,7 @@ class Player extends BodyComponent<SquishThemAll>
       if (contact.fixtureA == _fixture || contact.fixtureB == _fixture) {
         gameRef.playerData.score.value += 10;
         other.collected();
+        AudioManager.playSfx('Collectibles.wav');
       }
     }
 

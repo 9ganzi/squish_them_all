@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:squish_them_all/game/game.dart';
+import 'package:squish_them_all/game/utils/audio_manager.dart';
 // import 'package:squish_them_all/game/actors/player.dart';
 
 enum PortalState {
@@ -33,6 +34,7 @@ class Portal extends BodyComponent<SquishThemAll> with ContactCallbacks {
         srcSize: _size,
       ).createAnimation(row: 2, stepTime: .1)
         ..onComplete = () {
+          AudioManager.playSfx('Blop.wav');
           world.destroyBody(body);
           removeFromParent();
           onPlayerEnter?.call();

@@ -4,6 +4,7 @@ import 'package:flame/input.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:squish_them_all/game/overlays/game_over.dart';
 import 'package:squish_them_all/game/overlays/pause_menu.dart';
+import 'package:squish_them_all/game/utils/audio_manager.dart';
 
 class Hud extends Component with HasGameRef<SquishThemAll> {
   late final TextComponent scoreTextComponent;
@@ -55,6 +56,7 @@ class Hud extends Component with HasGameRef<SquishThemAll> {
 
     final pauseButton = SpriteButtonComponent(
       onPressed: () {
+        AudioManager.pauseBgm();
         gameRef.pauseEngine();
         gameRef.overlays.add(PauseMenu.id);
       },
@@ -90,6 +92,7 @@ class Hud extends Component with HasGameRef<SquishThemAll> {
 
     // Load game over overlay if health is zero.
     if (gameRef.playerData.health.value == 0) {
+      AudioManager.stopBgm();
       gameRef.pauseEngine();
       gameRef.overlays.add(GameOver.id);
     }

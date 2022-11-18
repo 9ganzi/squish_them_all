@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:squish_them_all/game/actors/enemy.dart';
 import 'package:squish_them_all/game/actors/ground.dart';
 import 'package:squish_them_all/game/game.dart';
+import 'package:squish_them_all/game/utils/audio_manager.dart';
 // import 'package:squish_them_all/game/actors/wall.dart';
 
 enum AngryPigState {
@@ -105,6 +106,7 @@ class AngryPig extends Enemy {
 
     if (_angryPigComponent.current == AngryPigState.hit2) {
       if (body.position.y >= _destroyHeight) {
+        AudioManager.playSfx('Hit.wav');
         world.destroyBody(body);
         removeFromParent();
       }

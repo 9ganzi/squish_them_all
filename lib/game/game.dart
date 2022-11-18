@@ -9,6 +9,7 @@ import 'package:squish_them_all/game/actors/player.dart';
 import 'package:squish_them_all/game/hud/hud.dart';
 import 'package:squish_them_all/game/level/level.dart';
 import 'package:squish_them_all/game/model/player_data.dart';
+import 'package:squish_them_all/game/utils/audio_manager.dart';
 // import 'package:squish_them_all/game/model/player_data.dart';
 
 final screenSize = Vector2(288, 208);
@@ -31,6 +32,8 @@ class SquishThemAll extends Forge2DGame
   Future<void>? onLoad() async {
     await Flame.device.fullScreen();
     await Flame.device.setLandscape();
+    await AudioManager.init();
+    AudioManager.playBgm('background1.wav');
 
     // Basically this viewport makes sure the ratio between width and height
     // is always the same in your game, no matter the platform.
