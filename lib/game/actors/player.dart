@@ -334,9 +334,12 @@ class Player extends BodyComponent<SquishThemAll>
       }
       final playerDir =
           (body.worldCenter - other.body.worldCenter).normalized();
+      // todo: finish this!
+      // other.body.worldCenter - Vector2(?, ?) + Vector2(?,0);
       if (playerDir.dot(Vector2(0, -1)) > .85) {
         _extraJumps = _extraJumpsValue + 1;
         jump();
+        gameRef.playerData.score.value += 10;
         other.hit();
       } else {
         if (contact.fixtureA == _leftSensorFixture ||
@@ -425,7 +428,7 @@ class Player extends BodyComponent<SquishThemAll>
 
   @override
   Body createBody() {
-    // debugMode = true;
+    debugMode = true;
 
     final bodyDef = BodyDef(
       userData: this,

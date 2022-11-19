@@ -1,13 +1,4 @@
-import 'package:flame/components.dart';
-import 'package:flame/sprite.dart';
-import 'package:flame_forge2d/flame_forge2d.dart';
-// import 'package:squish_them_all/game/actors/player.dart';
-import 'dart:math';
-
-import 'package:squish_them_all/game/actors/enemy.dart';
-import 'package:squish_them_all/game/actors/ground.dart';
-import 'package:squish_them_all/game/game.dart';
-// import 'package:squish_them_all/game/actors/wall.dart';
+part of "enemy.dart";
 
 enum AngryPigState {
   idle,
@@ -18,16 +9,15 @@ enum AngryPigState {
 }
 
 class AngryPig extends Enemy {
-  final _size = Vector2(36, 30);
-  final Vector2 _position;
-  final List<double> _turningPoints = List<double>.empty(growable: true);
   bool _isAngry = false;
   double _walkSpeed = 30;
-  int _turnStep = 0;
-  late Fixture _fixture;
-  late SpriteAnimationGroupComponent _angryPigComponent;
+  int _step = 0;
 
-  AngryPig(this._position, {super.renderBody = false}) : super(_position);
+  AngryPig(Vector2 position)
+      : super(
+          position,
+          Vector2(36, 30),
+        );
 
   @override
   Future<void> onLoad() async {
@@ -43,7 +33,7 @@ class AngryPig extends Enemy {
       ],
     );
 
-    direction = Random().nextInt(2) == 0 ? -1 : 1;
+    _direction = Random().nextInt(2) == 0 ? -1 : 1;
 
     final animations = {
       AngryPigState.idle: SpriteSheet(
@@ -59,7 +49,7 @@ class AngryPig extends Enemy {
         srcSize: Vector2(36, 30),
       ).createAnimation(row: 0, stepTime: 0.05, loop: false)
         ..onComplete = () {
-          _angryPigComponent.current = AngryPigState.run;
+          _enemyComponent.current = AngryPigState.run;
         },
       AngryPigState.run: SpriteSheet(
         image: gameRef.images.fromCache('Angry Pig - Run (36x30).png'),
@@ -72,26 +62,21 @@ class AngryPig extends Enemy {
         ..onStart = () {
           body.setFixedRotation(false);
           body.linearVelocity = Vector2.zero();
-          body.applyLinearImpulse(Vector2(-direction * .2, -1.5));
+          body.applyLinearImpulse(Vector2(-_direction * .2, -1.5));
           body.applyAngularImpulse(.01);
           body.destroyFixture(_fixture);
         },
     };
 
-    _angryPigComponent = SpriteAnimationGroupComponent<AngryPigState>(
+    _enemyComponent = SpriteAnimationGroupComponent<AngryPigState>(
       anchor: Anchor.center,
       size: _size / zoomLevel,
       animations: animations,
       current: AngryPigState.idle,
     );
 
-    add(_angryPigComponent);
+    add(_enemyComponent);
   }
-
-  double _waitTimeout = 1;
-  double _turnTimeoutValue = 1.5;
-  double _turnTimeout = 0;
-  late final double _destroyHeight = _size.y / 2 / zoomLevel + worldSize.y;
 
   @override
   void update(double dt) {
@@ -103,7 +88,7 @@ class AngryPig extends Enemy {
       _waitTimeout -= dt;
     }
 
-    if (_angryPigComponent.current == AngryPigState.hit2) {
+    if (_enemyComponent.current == AngryPigState.hit2) {
       if (body.position.y >= _destroyHeight) {
         world.destroyBody(body);
         removeFromParent();
@@ -118,43 +103,42 @@ class AngryPig extends Enemy {
 
     if (!_isAngry) {
       if (velocity.x != 0) {
-        _angryPigComponent.current = AngryPigState.walk;
+        _enemyComponent.current = AngryPigState.walk;
       } else {
-        _angryPigComponent.current = AngryPigState.idle;
+        _enemyComponent.current = AngryPigState.idle;
       }
-    } else {
-      // _angryPigComponent.current = AngryPigState.run;
     }
 
-    if (_turningPoints.length == 2 && _waitTimeout <= 0) {
-      // step 0: stop
-      if ((body.position.x <= _turningPoints[0] ||
-              body.position.x >= _turningPoints[1]) &&
-          _turnStep == 0) {
-        body.linearVelocity.x = 0;
-        direction = -direction;
-        _turnTimeout = _turnTimeoutValue;
-        _turnStep += 1;
-        // step 1: wait
-      } else if (_turnStep == 1 && _turnTimeout <= 0) {
-        // step 2: walk
-        body.applyForce(Vector2(direction * _walkSpeed, 0));
-        _turnStep += 1;
-      } else if (_turnStep == 2 &&
-          (body.position.x > _turningPoints[0] &&
-              body.position.x < _turningPoints[1])) {
-        _turnStep = 0;
-      }
-    }
+    // todo: uncomment this
+    // if (_turningPoints.length == 2 && _waitTimeout <= 0) {
+    //   // step 0: stop
+    //   if ((body.position.x <= _turningPoints[0] ||
+    //           body.position.x >= _turningPoints[1]) &&
+    //       _step == 0) {
+    //     body.linearVelocity.x = 0;
+    //     _direction = -_direction;
+    //     _turnTimeout = _turnTimeoutValue;
+    //     _step += 1;
+    //     // step 1: wait
+    //   } else if (_step == 1 && _turnTimeout <= 0) {
+    //     // step 2: walk
+    //     body.applyForce(Vector2(_direction * _walkSpeed, 0));
+    //     _step += 1;
+    //   } else if (_step == 2 &&
+    //       (body.position.x > _turningPoints[0] &&
+    //           body.position.x < _turningPoints[1])) {
+    //     _step = 0;
+    //   }
+    // }
 
     // change direction
-    if (direction < 0 && _turnStep == 2) {
-      if (_angryPigComponent.isFlippedHorizontally) {
-        _angryPigComponent.flipHorizontally();
+    if (_direction < 0 && _step == 2) {
+      if (_enemyComponent.isFlippedHorizontally) {
+        _enemyComponent.flipHorizontally();
       }
-    } else if (direction > 0 && _turnStep == 2) {
-      if (!_angryPigComponent.isFlippedHorizontally) {
-        _angryPigComponent.flipHorizontally();
+    } else if (_direction > 0 && _step == 2) {
+      if (!_enemyComponent.isFlippedHorizontally) {
+        _enemyComponent.flipHorizontally();
       }
     }
   }
@@ -162,19 +146,20 @@ class AngryPig extends Enemy {
   @override
   void hit() {
     if (!_isAngry) {
-      _angryPigComponent.current = AngryPigState.hit1;
+      _enemyComponent.current = AngryPigState.hit1;
       _isAngry = true;
       _turnTimeoutValue = 0;
       _turnTimeout = 0;
       _walkSpeed *= 1.5;
     } else {
-      _angryPigComponent.current = AngryPigState.hit2;
+      // todo: uncomment this
+      // _enemyComponent.current = AngryPigState.hit2;
     }
   }
 
   @override
   Body createBody() {
-    // debugMode = true;
+    debugMode = true;
 
     final bodyDef = BodyDef(
       userData: this,
@@ -216,12 +201,12 @@ class AngryPig extends Enemy {
             bool case1 = body.position.x <= _turningPoints[0];
             bool case2 = body.position.x >= _turningPoints[1];
             if (case1 || case2) {
-              _turnStep = 0;
-              if ((case1 && direction == 1) || (case2 && direction == -1)) {
-                direction = -direction;
+              _step = 0;
+              if ((case1 && _direction == 1) || (case2 && _direction == -1)) {
+                _direction = -_direction;
               }
             } else {
-              _turnStep = 1;
+              _step = 1;
             }
           }
         }

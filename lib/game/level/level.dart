@@ -6,7 +6,7 @@ import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:tiled/tiled.dart';
 
-import 'package:squish_them_all/game/actors/angry_pig.dart';
+import 'package:squish_them_all/game/actors/enemy.dart';
 import 'package:squish_them_all/game/actors/portal.dart';
 import 'package:squish_them_all/game/game.dart';
 import 'package:squish_them_all/game/actors/player.dart';
