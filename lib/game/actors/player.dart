@@ -33,9 +33,9 @@ class Player extends BodyComponent<SquishThemAll>
   static const double _maxSpeed = 1.25;
   static const double _maxSpeed2 = _maxSpeed * _maxSpeed;
   double _dir = 0;
-  final double _jumpForce = -3.75;
-  final double _changeDirForce = 2.5;
-  final double _wallBounceForce = .3;
+  final _jumpForce = -3.75;
+  final _changeDirForce = 2.5;
+  final _wallBounceForce = .3;
   late double _wallSlidePosition;
   late double _hitDir;
   int _numGroundContacts = 0;
@@ -45,10 +45,11 @@ class Player extends BodyComponent<SquishThemAll>
   bool _offWall = false;
   bool _leftSensorOn = false;
   bool _rightSensorOn = false;
-  final double _stopBouncingDistance = .08;
-  final int _extraJumpsValue = 1;
+  final _stopBouncingDistance = .08;
+  final _extraJumpsValue = 1;
   late int _extraJumps = _extraJumpsValue;
   late SpriteAnimationGroupComponent _playerComponent;
+  late double _width;
 
   Player(this._position, {super.renderBody = false});
 
@@ -334,13 +335,19 @@ class Player extends BodyComponent<SquishThemAll>
       }
       final playerDir =
           (body.worldCenter - other.body.worldCenter).normalized();
-      // todo: finish this!
-      // other.body.worldCenter - Vector2(?, ?) + Vector2(?,0);
-      if (playerDir.dot(Vector2(0, -1)) > .85) {
-        _extraJumps = _extraJumpsValue + 1;
-        jump();
-        gameRef.playerData.score.value += 10;
-        other.hit();
+      final vertex = other.body.worldCenter -
+          other.getter["vertex"] +
+          Vector2(_width * .0625, 0);
+      final vector = (vertex - other.body.worldCenter).normalized();
+      final radian = vector.dot(Vector2(0, -1));
+      if (contact.fixtureA == _footSensorFixture ||
+          contact.fixtureB == _footSensorFixture) {
+        if (playerDir.dot(Vector2(0, -1)) > radian) {
+          _extraJumps = _extraJumpsValue + 1;
+          jump();
+          gameRef.playerData.score.value += 10;
+          other.hit();
+        }
       } else {
         if (contact.fixtureA == _leftSensorFixture ||
             contact.fixtureB == _leftSensorFixture) {
@@ -428,7 +435,7 @@ class Player extends BodyComponent<SquishThemAll>
 
   @override
   Body createBody() {
-    debugMode = true;
+    // debugMode = true;
 
     final bodyDef = BodyDef(
       userData: this,
@@ -443,6 +450,8 @@ class Player extends BodyComponent<SquishThemAll>
         Vector2(0, 3.3) / zoomLevel,
         0,
       );
+
+    _width = shape.vertices[2][1] * 2;
 
     final fixtureDef = FixtureDef(shape)
       ..density = 15

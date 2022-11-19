@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="24" height="13" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="109">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="24" height="13" tilewidth="16" tileheight="16" infinite="0" nextlayerid="9" nextobjectid="134">
  <tileset firstgid="1" source="1 - _Complete_static_BG_(288 x 208).tsx"/>
  <tileset firstgid="235" source="1 - Terrain (16 x 16).tsx"/>
  <tileset firstgid="405" source="Fruits - Apple.tsx"/>

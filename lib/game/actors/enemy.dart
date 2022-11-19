@@ -12,9 +12,10 @@ part "angry_pig.dart";
 class Enemy extends BodyComponent<SquishThemAll> with ContactCallbacks {
   late final Vector2 _position;
   late final Vector2 _size;
-  final List<double> _turningPoints = List<double>.empty(growable: true);
+  final _turningPoints = List<double>.empty(growable: true);
   late int _direction;
   late Fixture _fixture;
+  late final Vector2 _vertex;
   late SpriteAnimationGroupComponent _enemyComponent;
   late final double _destroyHeight = _size.y / 2 / zoomLevel + worldSize.y;
   double _waitTimeout = 2;
@@ -22,6 +23,12 @@ class Enemy extends BodyComponent<SquishThemAll> with ContactCallbacks {
   double _turnTimeout = 0;
 
   Enemy(this._position, this._size, {super.renderBody = false});
+
+  Map<String, dynamic> get getter {
+    return {
+      "vertex": _vertex,
+    };
+  }
 
   @override
   Body createBody() {
