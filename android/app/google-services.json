@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "486430935548",
+    "project_id": "squishthemall-5c54e",
+    "storage_bucket": "squishthemall-5c54e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486430935548:android:5b47bcc333ad015ee0ca79",
+        "android_client_info": {
+          "package_name": "com.example.squish_them_all"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "486430935548-c3i02ob3kpjsiuov8497mcb5hke7i221.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQbofcBxC-LwmlJ1Wr_93MisR1fml9SVY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "486430935548-c3i02ob3kpjsiuov8497mcb5hke7i221.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "486430935548-c5idjjcdfq3okb4b8n3s1gt32ig389ju.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.squishThemAll"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

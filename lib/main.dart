@@ -7,15 +7,21 @@ import 'package:squish_them_all/game/overlays/game_over.dart';
 import 'package:squish_them_all/game/overlays/main_menu.dart';
 import 'package:squish_them_all/game/overlays/pause_menu.dart';
 import 'package:squish_them_all/game/overlays/settings.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  runApp(const MyApp());
+// import 'firebase_options.dart';
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
 final _game = SquishThemAll();
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
+
+  MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
