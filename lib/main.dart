@@ -8,11 +8,14 @@ import 'package:squish_them_all/game/overlays/main_menu.dart';
 import 'package:squish_them_all/game/overlays/pause_menu.dart';
 import 'package:squish_them_all/game/overlays/settings.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 // import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
